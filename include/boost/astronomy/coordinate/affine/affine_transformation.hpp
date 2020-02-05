@@ -12,8 +12,7 @@
 
 #include <boost/astronomy/coordinate/coordinate.hpp>
 #include <boost/units/systems/si/length.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <array>
 
 #define ROW 4
 
@@ -38,30 +37,30 @@ public:
     * a given matrix by an identity matrix is to leave the given matrix unchanged.
     */
 
-    ld temp_matrix[4][4] = {{1,0,0,0},
-                            {0,1,0,0},
-                            {0,0,1,0},
-                            {0,0,0,1}};
+    std::array<std::array<ld,4>, 4> temp_matrix = {{ { {1,0,0,0} },
+                                                     { {0,1,0,0} },
+                                                     { {0,0,1,0} },
+                                                     { {0,0,0,1} } }};
 
 private:
 
-    ld translate_matrix[4][4] = {{1,0,0,-1},
-                                 {0,1,0,-1},
-                                 {0,0,1,-1},
-                                 {0,0,0,1}};
+    std::array<std::array<ld,4>, 4> translate_matrix = {{ { {1,0,0,-1} },
+                                                          { {0,1,0,-1} },
+                                                          { {0,0,1,-1} },
+                                                          { {0,0,0,1} } }};
 
-    ld scale_matrix[4][4] = {{-1,0,0,0},
-                             {0,-1,0,0},
-                             {0,0,-1,0},
-                             {0,0,0,1}};
+    std::array<std::array<ld,4>, 4> scale_matrix = {{ { {-1,0,0,0} },
+                                                      { {0,-1,0,0} },
+                                                      { {0,0,-1,0} },
+                                                      { {0,0,0,1} } }};
 
-    ld shear_matrix[4][4] = {{1,-1,-1,0},
-                             {-1,1,-1,0},
-                             {-1,-1,1,0},
-                             {0,0,0,1}};
+    std::array<std::array<ld,4>, 4> shear_matrix = {{ { {1,-1,-1,0} },
+                                                      { {-1,1,-1,0} },
+                                                      { {-1,-1,1,0} },
+                                                      { {0,0,0,1} } }};
 
     //Multiplies temp_matrix with the given matrix
-    void multiplyMatrices(ld mat[][4])
+    void multiplyMatrices(const std::array<std::array<ld,4>, 4> &mat)
     {
         ld ans[4][4];
 
@@ -92,11 +91,11 @@ public:
 
         printf("\nMatrix:\n");
 
-        for (auto & i : temp_matrix) {
+        for (int i = 0 ; i < 4 ; i++) {
 
             for (int j = 0; j < 4; ++j) {
 
-                printf("%0.2Lf  ", i[j]);
+                std::cout<< std::setw(4) << temp_matrix[i][j] << " ";
 
                 if (j == 4 - 1)
                     printf("\n");
@@ -147,7 +146,7 @@ public:
  * Multiplies the transformation matrix
  * with the homogeneous coordinate matrix
  */
-cr compute_cr(ld firstMatrix[][4], ld secondMatrix[][1], int rowFirst = ROW, int columnFirst = 4, int rowSecond = ROW, int columnSecond = 1)
+cr compute_cr(std::array<std::array<ld,4>, 4> firstMatrix, std::array<std::array<ld,1>, 4> secondMatrix, int rowFirst = ROW, int columnFirst = 4, int rowSecond = ROW, int columnSecond = 1)
 {
     int i, j, k;
     ld ans[4][1];
@@ -196,10 +195,10 @@ private:
      *
      * (https://youtu.be/KAW7lXxMSb4?t=549)
      */
-    ld homogeneous_coordinate_matrix[4][1] = {{-1},
-                                              {-1},
-                                              {-1},
-                                              {0}};
+    std::array<std::array<ld,1>, 4> homogeneous_coordinate_matrix = {{ { {-1} },
+                                                                       { {-1} },
+                                                                       { {-1} },
+                                                                       { {0} } }};
 
     /**
      * From the given cartesian representation we create a
