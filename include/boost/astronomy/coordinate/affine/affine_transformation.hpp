@@ -89,20 +89,20 @@ public:
 
     void display() {
 
-        printf("\nMatrix:\n");
+        std::cout << "\nMatrix:\n";
 
         for (int i = 0 ; i < 4 ; i++) {
 
             for (int j = 0; j < 4; ++j) {
 
-                std::cout<< std::setw(4) << temp_matrix[i][j] << " ";
+                std::cout << std::setw(4) << temp_matrix[i][j] << " ";
 
                 if (j == 4 - 1)
-                    printf("\n");
+                    std::cout << std::endl;
             }
         }
 
-        printf("\n");
+        std::cout << std::endl;;
     }
 
     affine_matrix& translate(ld del_x, ld del_y, ld del_z)
@@ -184,8 +184,8 @@ private:
     cr m_cr;
 
     /**
-     *Here we convert the given cartesian_representation vector
-     *into homogeneous coordinate system.
+     * Here we convert the given cartesian_representation vector
+     * into homogeneous coordinate system.
      *
      * One very important point to be noted here is that in the matrix
      * homogeneous_coordinate_matrix[3][0] = 0 instead of conventional 1.
