@@ -7,25 +7,17 @@
   file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#ifndef BOOST_ASTRONOMY_COORDINATE_GALACTIC_HPP
+#define BOOST_ASTRONOMY_COORDINATE_GALACTIC_HPP
 
-#ifndef BOOST_ASTRONOMY_COORDINATE_BASE_EQUATORIAL_FRAME_HPP
-#define BOOST_ASTRONOMY_COORDINATE_BASE_EQUATORIAL_FRAME_HPP
-
-#include <type_traits>
-#include <boost/astronomy/coordinate/base_frame.hpp>
-#include <boost/astronomy/coordinate/spherical_representation.hpp>
-#include <boost/astronomy/coordinate/spherical_coslat_differential.hpp>
+#include <boost/astronomy/coordinate/reference_frames/base_frame.hpp>
+#include <boost/astronomy/coordinate/rep/spherical_representation.hpp>
+#include <boost/astronomy/coordinate/differentials/spherical_coslat_differential.hpp>
 
 namespace boost { namespace astronomy { namespace coordinate {
 
-namespace bu = boost::units;
-namespace bg = boost::geometry;
-
-template
-<
-    typename Representation, typename Differential
->
-struct base_equatorial_frame : public base_frame<Representation, Differential>
+template <typename Representation, typename Differential>
+struct galactic: public base_frame<Representation, Differential>
 {
     ///@cond INTERNAL
     BOOST_STATIC_ASSERT_MSG((std::is_base_of
@@ -42,16 +34,16 @@ struct base_equatorial_frame : public base_frame<Representation, Differential>
 
 public:
     //default constructor no initialization
-    base_equatorial_frame() {}
+    galactic() {}
 
-    //!constructs object from another representation object
+    //!creates coordinate in galactic frame using any subclass of base_representation
     template <typename OtherRepresentation>
-    base_equatorial_frame(OtherRepresentation const& representation_data)
+    galactic(OtherRepresentation const& representation_data)
     {
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
-            <boost::astronomy::coordinate::base_representation, OtherRepresentation>::value),
-            "argument type is expected to be a representation class");
-        
+            <boost::astronomy::coordinate::base_representation, OtherRepresentation>
+            ::value), "argument type is expected to be a representation class");
+
         auto temp = make_spherical_representation
             <
                 typename Representation::type,
@@ -66,48 +58,51 @@ public:
         this->data = temp;
     }
 
-    //!constructs object from provided components of representation
-    base_equatorial_frame
+    //!creates coordinate from given values
+    //!b -> latitude, l -> longitude
+    galactic
     (
-        typename Representation::quantity1 const& dec,
-        typename Representation::quantity2 const& ra,
+        typename Representation::quantity1 const& b,
+        typename Representation::quantity2 const& l,
         typename Representation::quantity3 const& distance
     )
     {
-        this->set_dec(dec);
-        this->set_ra(ra);
-        this->set_distance(distance);
+        this->data.set_lat_lon_dist(b, l, distance);
     }
 
-    //!constructs object from provided components of representation and differential
-    base_equatorial_frame
+    //!creates coordinate with motion from given values
+    //!b -> latitude, l -> longitude
+    //!pm_b -> proper motion in b, pm_l_cosb -> proper motion in l including cos(b) 
+    galactic
     (
-        typename Representation::quantity1 const& dec,
-        typename Representation::quantity2 const& ra,
+        typename Representation::quantity1 const& b,
+        typename Representation::quantity2 const& l,
         typename Representation::quantity3 const& distance,
-        typename Differential::quantity1 const& pm_dec,
-        typename Differential::quantity2 const& pm_ra_cosdec,
+        typename Differential::quantity1 const& pm_b,
+        typename Differential::quantity2 const& pm_l_cosb,
         typename Differential::quantity3 const& radial_velocity
-    ) : base_equatorial_frame(dec, ra, distance)
+    ) : galactic(b, l, distance)
     {
-        this->motion.set_dlat_dlon_coslat_ddist(pm_dec, pm_ra_cosdec, radial_velocity);
+        this->motion.set_dlat_dlon_coslat_ddist(pm_b, pm_l_cosb, radial_velocity);
     }
 
-    //!constructs object from other representation and differential
+    //!creates coordinate with motion
+    //!representation class is used for coordinate data
+    //!differential class is used for motion data
     template <typename OtherRepresentation, typename OtherDifferential>
-    base_equatorial_frame
+    galactic
     (
         OtherRepresentation const& representation_data,
         OtherDifferential const& differential_data
     )
     {
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
-            <boost::astronomy::coordinate::base_representation, OtherRepresentation>::value),
-            "argument type is expected to be a representation class");
+            <boost::astronomy::coordinate::base_representation, OtherRepresentation>
+            ::value), "argument type is expected to be a representation class");
         
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
-            <boost::astronomy::coordinate::base_differential, OtherDifferential>::value),
-            "argument type is expected to be a differential class");
+            <boost::astronomy::coordinate::base_differential, OtherDifferential>
+            ::value), "argument type is expected to be a differential class");
 
         auto rep_temp = make_spherical_representation
             <
@@ -136,43 +131,50 @@ public:
         this->motion = dif_temp;
     }
 
-    //!returns Declination component of the coordinate
-    typename Representation::quantity1 get_dec() const
+    //copy constructor
+    galactic(galactic<Representation, Differential> const& other)
+    {
+        this->data = other.get_data();
+        this->motion = other.get_differential();
+    }
+
+    //!returns component b of the galactic coordinate
+    typename Representation::quantity1 get_b() const
     {
         return this->data.get_lat();
     }
 
-    //!returns Right Ascension component of the coordinate
-    typename Representation::quantity2 get_ra() const
+    //!returns component l of the galactic coordinate
+    typename Representation::quantity2 get_l() const
     {
         return this->data.get_lon();
     }
 
-    //!returns distance component of the coordinate
+    //!returns distance component of the galactic coordinate
     typename Representation::quantity3 get_distance() const
     {
         return this->data.get_dist();
     }
 
-    //!returns the (dec, ra, dist) in the form of tuple
+    //!returns the (b, l, dist) in the form of tuple
     std::tuple
     <
         typename Representation::quantity1,
         typename Representation::quantity2,
         typename Representation::quantity3
-    > get_dec_ra_dist() const
+    > get_b_l_dist() const
     {
         return this->data.get_lat_lon_dist();
     }
 
-    //!returns proper motion in Declination
-    typename Differential::quantity1 get_pm_dec() const
+    //!returns proper motion in galactic latitude
+    typename Differential::quantity1 get_pm_b() const
     {
         return this->motion.get_dlat();
     }
 
-    //!returns proper motion in Right Ascension including cos(dec)
-    typename Differential::quantity2 get_pm_ra_cosdec() const
+    //!returns proper motion in galactic longitude including cos(b)
+    typename Differential::quantity2 get_pm_l_cosb() const
     {
         return this->motion.get_dlon_coslat();
     }
@@ -183,58 +185,56 @@ public:
         return this->motion.get_ddist();
     }
 
-    //!returns the proper motion in form of tuple including cos(dec)
+    //!returns the proper motion in form of tuple including cos(b)
     std::tuple
     <
         typename Differential::quantity1,
         typename Differential::quantity2,
         typename Differential::quantity3
-    > get_pm_dec_ra_radial() const
+    > get_pm_b_l_radial() const
     {
         return this->motion.get_dlat_dlon_coslat_ddist();
     }
 
-    //!sets value of Declination component of the coordinate
-    void set_dec(typename Representation::quantity1 const& dec)
+    //!sets value of component b of the galactic coordinate
+    void set_b(typename Representation::quantity1 const& b)
     {
-        this->data.set_lat(dec);
+        this->data.set_lat(b);
     }
 
-    //!sets value of Right Ascension component of the coordinate
-    void set_ra(typename Representation::quantity2 const& ra)
+    //!sets value of component l of the galactic coordinate
+    void set_l(typename Representation::quantity2 const& l)
     {
-        this->data.set_lon(ra);
+        this->data.set_lon(l);
     }
 
-    //!sets value of distance component of the coordinate
+    //!sets value of distance component of the galactic coordinate
     void set_distance(typename Representation::quantity3 const& distance)
     {
         this->data.set_dist(distance);
     }
 
     //!sets values of all component of the coordinate
-    void set_dec_ra_dist
+    void set_b_l_dist
     (
-        typename Representation::quantity1 const& dec,
-        typename Representation::quantity2 const& ra,
+        typename Representation::quantity1 const& b,
+        typename Representation::quantity2 const& l,
         typename Representation::quantity3 const& dist
     )
     {
-        this->set_dec(dec);
-        this->set_ra(ra);
-        this->set_distance(dist);
+        this->data.set_lat_lon_dist(b, l, dist);
     }
 
-    //!sets the proper motion in Declination
-    void set_pm_dec(typename Differential::quantity1 const& pm_dec)
+    //!sets the proper motion in galactic latitude
+    void set_pm_b(typename Differential::quantity1 const& pm_b)
     {
-        this->motion.set_dlat(pm_dec);
+        this->motion.set_dlat(pm_b);
     }
 
-    //!sets the proper motion in Right Ascension including cos(dec)
-    void set_pm_ra_cosdec(typename Differential::quantity2 const& pm_ra_cosdec)
+    //!sets the proper motion in galactic longitude including cos(b)
+    void set_pm_l_cosb(typename Differential::quantity2 const& pm_l_cosb)
     {
-        this->motion.set_dlon_coslat(pm_ra_cosdec);
+        this->motion.set_dlon_coslat(pm_l_cosb);
     }
 
     //!sets the radial_velocity
@@ -243,19 +243,19 @@ public:
         this->motion.set_ddist(radial_velocity);
     }
 
-    //!set value of motion including cos(dec)
-    void set_pm_dec_ra_radial
+    //!set value of motion including cos(b)
+    void set_pm_b_l_radial
     (
-        typename Differential::quantity1 const& pm_dec,
-        typename Differential::quantity2 const& pm_ra_cosdec,
+        typename Differential::quantity1 const& pm_b,
+        typename Differential::quantity2 const& pm_l_cosb,
         typename Differential::quantity3 const& radial_velocity
     )
     {
-        this->motion.set_dlat_dlon_coslat_ddist(pm_dec, pm_ra_cosdec, radial_velocity);
+        this->motion.set_dlat_dlon_coslat_ddist(pm_b, pm_l_cosb, radial_velocity);
     }
-}; //base_equatorial_frame
+};
 
 }}} //namespace boost::astronomy::coordinate
 
-#endif // !BOOST_ASTRONOMY_COORDINATE_BASE_EQUATORIAL_FRAME_HPP
+#endif // !BOOST_ASTRONOMY_COORDINATE_GALACTIC_HPP
 

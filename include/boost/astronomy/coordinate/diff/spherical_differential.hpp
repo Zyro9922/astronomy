@@ -7,13 +7,12 @@
   file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#ifndef BOOST_ASTRONOMY_COORDINATE_SPHERICAL_COSLAT_DIFFERENTIAL_HPP
-#define BOOST_ASTRONOMY_COORDINATE_SPHERICAL_COSLAT_DIFFERENTIAL_HPP
+#ifndef BOOST_ASTRONOMY_COORDINATE_SPHERICAL_DIFFERENTIAL_HPP
+#define BOOST_ASTRONOMY_COORDINATE_SPHERICAL_DIFFERENTIAL_HPP
 
 #include <tuple>
 #include <type_traits>
 
-#include <math.h>
 #include <boost/geometry/strategies/strategy_transform.hpp>
 #include <boost/geometry/core/cs.hpp>
 #include <boost/geometry/geometries/point.hpp>
@@ -26,28 +25,26 @@
 #include <boost/units/systems/si/plane_angle.hpp>
 
 #include <boost/astronomy/detail/is_base_template_of.hpp>
-#include <boost/astronomy/coordinate/base_differential.hpp>
-#include <boost/astronomy/coordinate/cartesian_differential.hpp>
-#include <boost/astronomy/coordinate/spherical_differential.hpp>
-
+#include <boost/astronomy/coordinate/diff/base_differential.hpp>
+#include <boost/astronomy/coordinate/diff/cartesian_differential.hpp>
 
 namespace boost { namespace astronomy { namespace coordinate {
 
 namespace bu = boost::units;
 namespace bg = boost::geometry;
 
-//!Represents the differential in spherical representation including cos(latitude) term
-//!Uses three components to represent a differential (dlatitude, dlongitude_coslat, ddistance)
+//!Represents the differential in spherical representation
+//!Uses three components to represent a differential (dlatitude, dlongitude, ddistance)
 
-template
+template 
 <
     typename CoordinateType = double,
     typename LatQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
     typename LonQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
-    typename DistQuantity = bu::quantity<bu::si::dimensionless, CoordinateType>
+    typename DistQuantity = bu::quantity<bu::si::dimensionless, CoordinateType>    
 >
-struct spherical_coslat_differential : public base_differential
-    <3, geometry::cs::spherical<radian>, CoordinateType>
+struct spherical_differential : public base_differential
+    <3, bg::cs::spherical<radian>, CoordinateType>
 {
     ///@cond INTERNAL
     BOOST_STATIC_ASSERT_MSG(
@@ -66,17 +63,17 @@ public:
     typedef DistQuantity quantity3;
 
     //default constructor no initialization
-    spherical_coslat_differential() {}
+    spherical_differential() {}
 
     //!constructs object from provided components of differential
-    spherical_coslat_differential
+    spherical_differential
     (
         LatQuantity const& dlat,
-        LonQuantity const& dlon_coslat,
+        LonQuantity const& dlon,
         DistQuantity const& ddistance
     )
     {
-        this->set_dlat_dlon_coslat_ddist(dlat, dlon_coslat, ddistance);
+        this->set_dlat_dlon_ddist(dlat, dlon, ddistance);
     }
 
     //!constructs object from boost::geometry::model::point object
@@ -86,7 +83,7 @@ public:
         typename OtherCoordinateSystem,
         typename OtherCoordinateType
     >
-    spherical_coslat_differential
+    spherical_differential
     (
         bg::model::point
         <
@@ -102,9 +99,9 @@ public:
     }
 
     //copy constructor
-    spherical_coslat_differential
+    spherical_differential
     (
-        spherical_coslat_differential
+        spherical_differential
         <
             CoordinateType,
             LatQuantity,
@@ -116,25 +113,22 @@ public:
         this->diff = other.get_differential();
     }
 
-    // !constructs object from any type of differential
+    //!constructs object from any type of differential
     template <typename Differential>
-    spherical_coslat_differential(Differential const& other)
+    spherical_differential(Differential const& other)
     {
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
             <boost::astronomy::coordinate::base_differential, Differential>::value),
             "No constructor found with given argument type");
 
         auto temp = make_spherical_differential(other);
-        temp.set_dlon(temp.get_dlon() * cos(static_cast<bu::quantity
-            <bu::si::plane_angle, CoordinateType>>(temp.get_dlat()).value()));
-        this->diff = temp.get_differential();
+        bg::transform(temp.get_differential(), this->diff);
     }
 
-    //! returns the (dlat, dlon_coslat, ddistance) in the form of tuple
-    std::tuple<LatQuantity, LonQuantity, DistQuantity> get_dlat_dlon_coslat_ddist() const
+    //! returns the (dlat, dlon, ddistance) in the form of tuple
+    std::tuple<LatQuantity, LonQuantity, DistQuantity> get_dlat_dlon_ddist() const
     {
-        return std::make_tuple(this->get_dlat(), this->get_dlon_coslat(),
-            this->get_ddist());
+        return std::make_tuple(this->get_dlat(), this->get_dlon(), this->get_ddist());
     }
 
     //!returns the dlat component of differential
@@ -147,8 +141,8 @@ public:
             );
     }
 
-    //!returns the dlon_coslat component of differential
-    LonQuantity get_dlon_coslat() const
+    //!returns the dlon component of differential
+    LonQuantity get_dlon() const
     {
         return static_cast<LonQuantity>
             (
@@ -163,16 +157,16 @@ public:
         return DistQuantity::from_value(bg::get<2>(this->diff));
     }
 
-    //!set value of (dlat, dlon_coslat, ddistance) in current object
-    void set_dlat_dlon_coslat_ddist
+    //!set value of (dlat, dlon, ddistance) in current object
+    void set_dlat_dlon_ddist
     (
         LatQuantity const& dlat,
-        LonQuantity const& dlon_coslat,
+        LonQuantity const& dlon,
         DistQuantity const& ddistance
     )
     {
         this->set_dlat(dlat);
-        this->set_dlon_coslat(dlon_coslat);
+        this->set_dlon(dlon);
         this->set_ddist(ddistance);
     }
 
@@ -186,14 +180,13 @@ public:
             );
     }
 
-    //!set value of dlon_coslat component of differential
-    void set_dlon_coslat(LonQuantity const& dlon_coslat)
+    //!set value of dlon component of differential
+    void set_dlon(LonQuantity const& dlon)
     {
         bg::set<1>
             (
             this->diff,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>
-                (dlon_coslat).value()
+            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(dlon).value()
             );
     }
 
@@ -208,13 +201,13 @@ public:
     <
         typename Addend
     >
-    spherical_coslat_differential
+    spherical_differential
     <
         CoordinateType,
         LatQuantity,
         LonQuantity,
         DistQuantity
-    >
+    > 
     operator +(Addend const& addend) const
     {
         auto cartesian1 = make_cartesian_differential
@@ -223,13 +216,13 @@ public:
 
         auto temp = cartesian1 + cartesian2;
 
-        spherical_coslat_differential
+        spherical_differential
         <
             CoordinateType,
             LatQuantity,
             LonQuantity,
             DistQuantity
-        > result = make_spherical_coslat_differential(temp);
+        > result = make_spherical_differential(temp);
 
         return result;
     }
@@ -241,11 +234,11 @@ public:
     >
     auto operator *(OtherQuantity const& dt) const
     {
-        
-        spherical_coslat_differential
-            <CoordinateType, LatQuantity, LonQuantity, DistQuantity> temp(this->diff);
 
-        spherical_coslat_differential
+        spherical_differential<CoordinateType, LatQuantity, LonQuantity, DistQuantity>
+            temp(this->diff);
+
+        spherical_differential
         <
             CoordinateType,
             LatQuantity,
@@ -259,15 +252,16 @@ public:
         > product
         (
             temp.get_dlat(),
-            temp.get_dlon_coslat(),
+            temp.get_dlon(),
             temp.get_ddist() * dt
         );
 
         return product;
     }
-}; //spherical_coslat_differential
+}; //spherical_differential
 
 //!constructs object from provided components of differential
+//!Each quantity can have different units but with same datatypes
 template
 <
     typename CoordinateType,
@@ -278,27 +272,27 @@ template
     typename Unit2,
     typename Unit3
 >
-spherical_coslat_differential
+spherical_differential
 <
     CoordinateType,
     LatQuantity<Unit1, CoordinateType>,
     LonQuantity<Unit2, CoordinateType>,
     DistQuantity<Unit3, CoordinateType>
 >
-make_spherical_coslat_differential
+make_spherical_differential
 (
     LatQuantity<Unit1, CoordinateType> const& dlat,
-    LonQuantity<Unit2, CoordinateType> const& dlon_coslat,
+    LonQuantity<Unit2, CoordinateType> const& dlon,
     DistQuantity<Unit3, CoordinateType> const& ddist
 )
 {
-    return spherical_coslat_differential
+    return spherical_differential
         <
             CoordinateType,
             LatQuantity<Unit1, CoordinateType>,
             LonQuantity<Unit2, CoordinateType>,
             DistQuantity<Unit3, CoordinateType>
-        >(dlat, dlon_coslat, ddist);
+        >(dlat, dlon, ddist);
 }
 
 //!constructs object from provided components of differential with different units
@@ -313,16 +307,16 @@ template
     typename LonQuantity,
     typename DistQuantity
 >
-spherical_coslat_differential
+spherical_differential
 <
     ReturnCoordinateType,
     ReturnLatQuantity,
     ReturnLonQuantity,
     ReturnDistQuantity
 >
-make_spherical_coslat_differential
+make_spherical_differential
 (
-    spherical_coslat_differential
+    spherical_differential
     <
         CoordinateType,
         LatQuantity,
@@ -331,9 +325,9 @@ make_spherical_coslat_differential
     > const& other
 )
 {
-    return make_spherical_coslat_differential(
+    return make_spherical_differential(
         static_cast<ReturnLatQuantity>(other.get_dlat()),
-        static_cast<ReturnLonQuantity>(other.get_dlon_coslat()),
+        static_cast<ReturnLonQuantity>(other.get_dlon()),
         static_cast<ReturnDistQuantity>(other.get_ddist())
     );
 }
@@ -346,16 +340,16 @@ template
     typename LonQuantity,
     typename DistQuantity
 >
-spherical_coslat_differential
+spherical_differential
 <
     CoordinateType,
     LatQuantity,
     LonQuantity,
     DistQuantity
 >
-make_spherical_coslat_differential
+make_spherical_differential
 (
-    spherical_coslat_differential
+    spherical_differential
     <
         CoordinateType,
         LatQuantity,
@@ -364,7 +358,7 @@ make_spherical_coslat_differential
     > const& other
 )
 {
-    return spherical_coslat_differential
+    return spherical_differential
         <
             CoordinateType,
             LatQuantity,
@@ -384,14 +378,14 @@ template
     typename OtherCoordinateSystem,
     typename OtherCoordinateType
 >
-spherical_coslat_differential
+spherical_differential
 <
     CoordinateType,
     LatQuantity,
     LonQuantity,
     DistQuantity
 >
-make_spherical_coslat_differential
+make_spherical_differential
 (
     bg::model::point
     <
@@ -401,7 +395,7 @@ make_spherical_coslat_differential
     > const& pointObject
 )
 {
-    return spherical_coslat_differential
+    return spherical_differential
         <
             CoordinateType,
             LatQuantity,
@@ -415,73 +409,40 @@ template
 <
     typename OtherDifferential
 >
-auto make_spherical_coslat_differential
+auto make_spherical_differential
 (
     OtherDifferential const& other
 )
 {   
-    auto temp = make_spherical_differential(other);
-    typedef decltype(temp) spherical_type;
+    auto temp = make_cartesian_differential(other);
+    typedef decltype(temp) cartesian_type;
 
-    temp.set_dlon(temp.get_dlon() * cos(static_cast<bu::quantity
-        <bu::si::plane_angle, typename spherical_type::type>>(temp.get_dlat()).value()));
-    
-    return spherical_coslat_differential
+    bg::model::point
         <
-            typename spherical_type::type,
-            bu::quantity<bu::si::plane_angle, typename spherical_type::type>,
-            bu::quantity<bu::si::plane_angle, typename spherical_type::type>,
-            typename spherical_type::quantity3
-        >(temp.get_differential());
+            typename cartesian_type::type,
+            3,
+            bg::cs::cartesian
+        > tempPoint;
+
+    bg::set<0>(tempPoint, temp.get_dx().value());
+    bg::set<1>(tempPoint, static_cast<typename cartesian_type::quantity1>
+        (temp.get_dy()).value());
+    bg::set<2>(tempPoint, static_cast<typename cartesian_type::quantity1>
+        (temp.get_dz()).value());
+
+    bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical<radian>> result;
+    bg::transform(tempPoint, result);
+
+    return spherical_differential
+        <
+            typename cartesian_type::type,
+            bu::quantity<bu::si::plane_angle, typename cartesian_type::type>,
+            bu::quantity<bu::si::plane_angle, typename cartesian_type::type>,
+            typename cartesian_type::quantity1
+        >(result);
 }
 
-//!constructs cartesian object from spherical_coslat_differential
-//function placed in this file to avoid circular dependency of header files
-template
-<
-    typename CoordinateType,
-    template <typename Unit1, typename CoordinateType_> class LatQuantity,
-    template <typename Unit2, typename CoordinateType_> class LonQuantity,
-    template <typename Unit3, typename CoordinateType_> class DistQuantity,
-    typename Unit1,
-    typename Unit2,
-    typename Unit3
->
-auto
-make_cartesian_differential
-(
-    spherical_coslat_differential
-    <
-        CoordinateType,
-        LatQuantity<Unit1, CoordinateType>,
-        LonQuantity<Unit2, CoordinateType>,
-        DistQuantity<Unit3, CoordinateType>
-    > const& other
-)
-{
-    typedef spherical_coslat_differential
-    <
-        CoordinateType,
-        LatQuantity<Unit1, CoordinateType>,
-        LonQuantity<Unit2, CoordinateType>,
-        DistQuantity<Unit3, CoordinateType>
-    > spherical_type;
-    bg::model::point<typename spherical_type::type, 3, bg::cs::spherical<radian>> temp;
+}}}//namespace boost::astronomy::coordinate
 
-    temp = other.get_differential();
-
-    bg::set<1>(temp, bg::get<1>(temp) / cos(bg::get<0>(temp)));
-
-    return cartesian_differential
-    <
-        typename spherical_type::type,
-        typename spherical_type::quantity3,
-        typename spherical_type::quantity3,
-        typename spherical_type::quantity3
-    >(temp);
-}
-
-}}} //namespace boost::astronomy::coordinate
-
-#endif // !BOOST_ASTRONOMY_COORDINATE_SPHERICAL_COSLAT_DIFFERENTIAL_HPP
+#endif // !BOOST_ASTRONOMY_COORDINATE_SPHERICAL_DIFFERENTIAL_HPP
 

@@ -22,8 +22,8 @@
 #include <boost/geometry/core/cs.hpp>
 #include <boost/units/conversion.hpp>
 
-#include <boost/astronomy/coordinate/base_representation.hpp>
-#include <boost/astronomy/coordinate/cartesian_representation.hpp>
+#include <boost/astronomy/coordinate/rep/base_representation.hpp>
+#include <boost/astronomy/coordinate/rep/cartesian_representation.hpp>
 
 
 namespace boost { namespace astronomy { namespace coordinate {

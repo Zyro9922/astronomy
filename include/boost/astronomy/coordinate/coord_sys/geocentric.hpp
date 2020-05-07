@@ -7,10 +7,10 @@
   file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#ifndef BOOST_ASTRONOMY_COORDINATE_HELIOCENTRIC_HPP
-#define BOOST_ASTRONOMY_COORDINATE_HELIOCENTRIC_HPP
+#ifndef BOOST_ASTRONOMY_COORDINATE_GEOCENTRIC_HPP
+#define BOOST_ASTRONOMY_COORDINATE_GEOCENTRIC_HPP
 
-#include <boost/astronomy/coordinate/base_ecliptic_frame.hpp>
+#include <boost/astronomy/coordinate/reference_frames/base_ecliptic_frame.hpp>
 
 namespace boost { namespace astronomy { namespace coordinate {
 
@@ -18,20 +18,20 @@ template
 <
     typename Representation, typename Differential
 >
-struct heliocentric : public base_ecliptic_frame<Representation, Differential>
+struct geocentric : public base_ecliptic_frame<Representation, Differential>
 {
 
 public:
     //default constructor no initialization
-    heliocentric() {}
+    geocentric() {}
 
     //!constructs object from another representation object
     template <typename OtherRepresentation>
-    heliocentric(OtherRepresentation const& representation_data) : base_ecliptic_frame
+    geocentric(OtherRepresentation const& representation_data) : base_ecliptic_frame
         <Representation, Differential>(representation_data) {}
 
     //!constructs object from provided components of representation
-    heliocentric
+    geocentric
     (
         typename Representation::quantity1 const& lat,
         typename Representation::quantity2 const& lon,
@@ -39,7 +39,7 @@ public:
     ) : base_ecliptic_frame<Representation, Differential>(lat, lon, distance) {}
 
     //!constructs object from provided components of representation and differential
-    heliocentric
+    geocentric
     (
         typename Representation::quantity1 const& lat,
         typename Representation::quantity2 const& lon,
@@ -52,7 +52,7 @@ public:
 
     //!constructs object from other representation and differential objects
     template <typename OtherRepresentation, typename OtherDifferential>
-    heliocentric
+    geocentric
     (
         OtherRepresentation const& representation_data,
         OtherDifferential const& differential_data
@@ -62,5 +62,5 @@ public:
 
 }}} //namespace boost::astronomy::coordinate
 
-#endif // !BOOST_ASTRONOMY_COORDINATE_HELIOCENTRIC_HPP
+#endif // !BOOST_ASTRONOMY_COORDINATE_GEOCENTRIC_HPP
 

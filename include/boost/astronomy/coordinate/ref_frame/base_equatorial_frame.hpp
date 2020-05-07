@@ -7,14 +7,14 @@
   file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#ifndef BOOST_ASTRONOMY_COORDINATE_BASE_ECLIPTIC_FRAME_HPP
-#define BOOST_ASTRONOMY_COORDINATE_BASE_ECLIPTIC_FRAME_HPP
+
+#ifndef BOOST_ASTRONOMY_COORDINATE_BASE_EQUATORIAL_FRAME_HPP
+#define BOOST_ASTRONOMY_COORDINATE_BASE_EQUATORIAL_FRAME_HPP
 
 #include <type_traits>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/astronomy/coordinate/base_frame.hpp>
-#include <boost/astronomy/coordinate/spherical_representation.hpp>
-#include <boost/astronomy/coordinate/spherical_coslat_differential.hpp>
+#include <boost/astronomy/coordinate/ref_frame/base_frame.hpp>
+#include <boost/astronomy/coordinate/rep/spherical_representation.hpp>
+#include <boost/astronomy/coordinate/diff/spherical_coslat_differential.hpp>
 
 namespace boost { namespace astronomy { namespace coordinate {
 
@@ -25,7 +25,7 @@ template
 <
     typename Representation, typename Differential
 >
-struct base_ecliptic_frame : public base_frame<Representation, Differential>
+struct base_equatorial_frame : public base_frame<Representation, Differential>
 {
     ///@cond INTERNAL
     BOOST_STATIC_ASSERT_MSG((std::is_base_of
@@ -40,20 +40,17 @@ struct base_ecliptic_frame : public base_frame<Representation, Differential>
             "argument type is expected to be a spherical_coslat_differential class");
     ///@endcond
 
-protected:
-    boost::posix_time::ptime equinox;
-
 public:
     //default constructor no initialization
-    base_ecliptic_frame() {}
+    base_equatorial_frame() {}
 
     //!constructs object from another representation object
     template <typename OtherRepresentation>
-    base_ecliptic_frame(OtherRepresentation const& representation_data)
+    base_equatorial_frame(OtherRepresentation const& representation_data)
     {
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
-            <boost::astronomy::coordinate::base_representation, OtherRepresentation>
-            ::value), "argument type is expected to be a representation class");
+            <boost::astronomy::coordinate::base_representation, OtherRepresentation>::value),
+            "argument type is expected to be a representation class");
         
         auto temp = make_spherical_representation
             <
@@ -70,45 +67,47 @@ public:
     }
 
     //!constructs object from provided components of representation
-    base_ecliptic_frame
+    base_equatorial_frame
     (
-        typename Representation::quantity1 const& lat,
-        typename Representation::quantity2 const& lon,
+        typename Representation::quantity1 const& dec,
+        typename Representation::quantity2 const& ra,
         typename Representation::quantity3 const& distance
     )
     {
-        this->data.set_lat_lon_dist(lat, lon, distance);
+        this->set_dec(dec);
+        this->set_ra(ra);
+        this->set_distance(distance);
     }
 
     //!constructs object from provided components of representation and differential
-    base_ecliptic_frame
+    base_equatorial_frame
     (
-        typename Representation::quantity1 const& lat,
-        typename Representation::quantity2 const& lon,
+        typename Representation::quantity1 const& dec,
+        typename Representation::quantity2 const& ra,
         typename Representation::quantity3 const& distance,
-        typename Differential::quantity1 const& pm_lat,
-        typename Differential::quantity2 const& pm_lon_coslat,
+        typename Differential::quantity1 const& pm_dec,
+        typename Differential::quantity2 const& pm_ra_cosdec,
         typename Differential::quantity3 const& radial_velocity
-    ) : base_ecliptic_frame(lat, lon, distance)
+    ) : base_equatorial_frame(dec, ra, distance)
     {
-        this->motion.set_dlat_dlon_coslat_ddist(pm_lat, pm_lon_coslat, radial_velocity);
+        this->motion.set_dlat_dlon_coslat_ddist(pm_dec, pm_ra_cosdec, radial_velocity);
     }
 
     //!constructs object from other representation and differential
     template <typename OtherRepresentation, typename OtherDifferential>
-    base_ecliptic_frame
+    base_equatorial_frame
     (
         OtherRepresentation const& representation_data,
         OtherDifferential const& differential_data
     )
     {
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
-            <boost::astronomy::coordinate::base_representation, OtherRepresentation>
-            ::value), "argument type is expected to be a representation class");
+            <boost::astronomy::coordinate::base_representation, OtherRepresentation>::value),
+            "argument type is expected to be a representation class");
         
         BOOST_STATIC_ASSERT_MSG((boost::astronomy::detail::is_base_template_of
-            <boost::astronomy::coordinate::base_differential, OtherDifferential>
-            ::value), "argument type is expected to be a differential class");
+            <boost::astronomy::coordinate::base_differential, OtherDifferential>::value),
+            "argument type is expected to be a differential class");
 
         auto rep_temp = make_spherical_representation
             <
@@ -137,14 +136,14 @@ public:
         this->motion = dif_temp;
     }
 
-    //!returns latitude component of the coordinate
-    typename Representation::quantity1 get_lat() const
+    //!returns Declination component of the coordinate
+    typename Representation::quantity1 get_dec() const
     {
         return this->data.get_lat();
     }
 
-    //!returns longitude component of the coordinate
-    typename Representation::quantity2 get_lon() const
+    //!returns Right Ascension component of the coordinate
+    typename Representation::quantity2 get_ra() const
     {
         return this->data.get_lon();
     }
@@ -155,25 +154,25 @@ public:
         return this->data.get_dist();
     }
 
-    //!returns the (lat, lon, dist) in the form of tuple
+    //!returns the (dec, ra, dist) in the form of tuple
     std::tuple
     <
         typename Representation::quantity1,
         typename Representation::quantity2,
         typename Representation::quantity3
-    > get_lat_lon_dist() const
+    > get_dec_ra_dist() const
     {
         return this->data.get_lat_lon_dist();
     }
 
-    //!returns proper motion in latitude
-    typename Differential::quantity1 get_pm_lat() const
+    //!returns proper motion in Declination
+    typename Differential::quantity1 get_pm_dec() const
     {
         return this->motion.get_dlat();
     }
 
-    //!returns proper motion in longitude including cos(lat)
-    typename Differential::quantity2 get_pm_lon_coslat() const
+    //!returns proper motion in Right Ascension including cos(dec)
+    typename Differential::quantity2 get_pm_ra_cosdec() const
     {
         return this->motion.get_dlon_coslat();
     }
@@ -184,27 +183,27 @@ public:
         return this->motion.get_ddist();
     }
 
-    //!returns the proper motion in form of tuple
+    //!returns the proper motion in form of tuple including cos(dec)
     std::tuple
     <
         typename Differential::quantity1,
         typename Differential::quantity2,
         typename Differential::quantity3
-    > get_pm_lat_lon_radial() const
+    > get_pm_dec_ra_radial() const
     {
         return this->motion.get_dlat_dlon_coslat_ddist();
     }
 
-    //!sets value of latitude component of the coordinate
-    void set_lat(typename Representation::quantity1 const& lat)
+    //!sets value of Declination component of the coordinate
+    void set_dec(typename Representation::quantity1 const& dec)
     {
-        this->data.set_lat(lat);
+        this->data.set_lat(dec);
     }
 
-    //!sets value of longitude component of the coordinate
-    void set_lon(typename Representation::quantity2 const& lon)
+    //!sets value of Right Ascension component of the coordinate
+    void set_ra(typename Representation::quantity2 const& ra)
     {
-        this->data.set_lon(lon);
+        this->data.set_lon(ra);
     }
 
     //!sets value of distance component of the coordinate
@@ -214,26 +213,28 @@ public:
     }
 
     //!sets values of all component of the coordinate
-    void set_lat_lon_dist
+    void set_dec_ra_dist
     (
-        typename Representation::quantity1 const& lat,
-        typename Representation::quantity2 const& lon,
+        typename Representation::quantity1 const& dec,
+        typename Representation::quantity2 const& ra,
         typename Representation::quantity3 const& dist
     )
     {
-        this->data.set_lat_lon_dist(lat, lon, dist);
+        this->set_dec(dec);
+        this->set_ra(ra);
+        this->set_distance(dist);
     }
 
-    //!sets the proper motion in latitude
-    void set_pm_lat(typename Differential::quantity1 const& pm_lat)
+    //!sets the proper motion in Declination
+    void set_pm_dec(typename Differential::quantity1 const& pm_dec)
     {
-        this->motion.set_dlat(pm_lat);
+        this->motion.set_dlat(pm_dec);
     }
 
-    //!sets the proper motion in longitude including cos(lat)
-    void set_pm_lon_coslat(typename Differential::quantity2 const& pm_lon_coslat)
+    //!sets the proper motion in Right Ascension including cos(dec)
+    void set_pm_ra_cosdec(typename Differential::quantity2 const& pm_ra_cosdec)
     {
-        this->motion.set_dlon_coslat(pm_lon_coslat);
+        this->motion.set_dlon_coslat(pm_ra_cosdec);
     }
 
     //!sets the radial_velocity
@@ -242,31 +243,19 @@ public:
         this->motion.set_ddist(radial_velocity);
     }
 
-    //!set value of motion  including cos(b)
-    void set_pm_lat_lon_radial
+    //!set value of motion including cos(dec)
+    void set_pm_dec_ra_radial
     (
-        typename Differential::quantity1 const& pm_lat,
-        typename Differential::quantity2 const& pm_lon_coslat,
+        typename Differential::quantity1 const& pm_dec,
+        typename Differential::quantity2 const& pm_ra_cosdec,
         typename Differential::quantity3 const& radial_velocity
     )
     {
-        this->motion.set_dlat_dlon_coslat_ddist(pm_lat, pm_lon_coslat, radial_velocity);
+        this->motion.set_dlat_dlon_coslat_ddist(pm_dec, pm_ra_cosdec, radial_velocity);
     }
-
-    //!returns equinox time
-    boost::posix_time::ptime get_equinox() const
-    {
-        return this->equinox;
-    }
-
-    //!sets equinox time
-    void set_equinox(boost::posix_time::ptime const& time)
-    {
-        this->equinox = time;
-    }
-}; //base_ecliptic_frame
+}; //base_equatorial_frame
 
 }}} //namespace boost::astronomy::coordinate
 
-#endif // !BOOST_ASTRONOMY_COORDINATE_BASE_ECLIPTIC_FRAME_HPP
+#endif // !BOOST_ASTRONOMY_COORDINATE_BASE_EQUATORIAL_FRAME_HPP
 

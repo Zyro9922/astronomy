@@ -7,11 +7,10 @@
   file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#ifndef BOOST_ASTRONOMY_COORDINATE_CIRS_HPP
-#define BOOST_ASTRONOMY_COORDINATE_CIRS_HPP
+#ifndef BOOST_ASTRONOMY_COORDINATE_ICRS_HPP
+#define BOOST_ASTRONOMY_COORDINATE_ICRS_HPP
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/astronomy/coordinate/base_equatorial_frame.hpp>
+#include <boost/astronomy/coordinate/ref_frame/base_equatorial_frame.hpp>
 
 namespace boost { namespace astronomy { namespace coordinate {
 
@@ -19,24 +18,20 @@ template
 <
     typename Representation, typename Differential
 >
-struct cirs : public base_equatorial_frame<Representation, Differential>
+struct icrs : public base_equatorial_frame<Representation, Differential>
 {
-
-protected:
-    //!time used to determine the position of earth at the time of observation
-    boost::posix_time::ptime obs_time; 
 
 public:
     //default constructor no initialization
-    cirs() {}
+    icrs() {}
 
     //!constructs object from another representation object
     template <typename OtherRepresentation>
-    cirs(OtherRepresentation const& representation_data) : base_equatorial_frame
+    icrs(OtherRepresentation const& representation_data) : base_equatorial_frame
         <Representation, Differential>(representation_data) {}
 
     //!constructs object from provided components of representation
-    cirs
+    icrs
     (
         typename Representation::quantity1 const& dec,
         typename Representation::quantity2 const& ra,
@@ -44,7 +39,7 @@ public:
     ) : base_equatorial_frame<Representation, Differential>(dec, ra, distance) {}
 
     //!constructs object from provided components of representation and differential
-    cirs
+    icrs
     (
         typename Representation::quantity1 const& dec,
         typename Representation::quantity2 const& ra,
@@ -57,25 +52,15 @@ public:
 
     //!constructs object from other representation and differential objects
     template <typename OtherRepresentation, typename OtherDifferential>
-    cirs
+    icrs
     (
         OtherRepresentation const& representation_data,
         OtherDifferential const& differential_data
     ) : base_equatorial_frame<Representation, Differential>
             (representation_data, differential_data) {}
-
-    boost::posix_time::ptime get_obs_time() const
-    {
-        return this->obstime;
-    }
-
-    void set_obs_time(boost::posix_time::ptime const& time)
-    {
-        this->obstime = time;
-    }
 };
 
 }}} //namespace boost::astronomy::coordinate
 
-#endif // !BOOST_ASTRONOMY_COORDINATE_CIRS_HPP
+#endif // !BOOST_ASTRONOMY_COORDINATE_ICRS_HPP
 

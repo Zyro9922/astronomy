@@ -27,9 +27,9 @@
 #include <boost/static_assert.hpp>
 
 #include <boost/astronomy/detail/is_base_template_of.hpp>
-#include <boost/astronomy/coordinate/base_frame.hpp>
-#include <boost/astronomy/coordinate/representation.hpp>
-#include <boost/astronomy/coordinate/differential.hpp>
+#include <boost/astronomy/coordinate/reference_frames/base_frame.hpp>
+#include <boost/astronomy/coordinate/rep/representation.hpp>
+#include <boost/astronomy/coordinate/differentials/differential.hpp>
 
 
 namespace boost { namespace astronomy { namespace coordinate {
