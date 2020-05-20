@@ -40,11 +40,11 @@ namespace boost {
                         (
                                 EclipticLonQuantity const &EclipticLon,
                                 EclipticLatQuantity const &EclipticLat
-                        )
-                {
+                        ) {
                     this->set_EclipticLon_EclipticLat(EclipticLon, EclipticLat);
                 }
 
+                //Create a tuple of Ecliptic Longitude and Ecliptic Latitude
                 std::tuple<EclipticLonQuantity, EclipticLatQuantity> get_EclipticLon_EclipticLat() const {
                     return std::make_tuple(this->get_EclipticLon(), this->get_EclipticLat());
                 }
@@ -97,6 +97,7 @@ namespace boost {
 
             }; //ecliptic_coord
 
+            //Make Ecliptic Coordinate
             template
                     <
                             typename CoordinateType,
@@ -130,16 +131,14 @@ namespace boost {
                             class EclipticLonQuantity,
                             class EclipticLatQuantity
                     >
-            std::ostream& operator<< (std::ostream &out, ecliptic_coord
-                    <CoordinateType, EclipticLonQuantity, EclipticLatQuantity> const& point)
-            {
+            std::ostream &operator<<(std::ostream &out, ecliptic_coord
+                    <CoordinateType, EclipticLonQuantity, EclipticLatQuantity> const &point) {
                 out << "Ecliptic Coordinate (Ecliptic Longitude: "
                     << point.get_EclipticLon() << " , Ecliptic Latitude: "
                     << point.get_EclipticLat() << ")";
 
                 return out;
             }
-
         }
     }
 }

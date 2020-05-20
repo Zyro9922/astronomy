@@ -3,11 +3,10 @@
 
 #include <cstddef>
 #include <type_traits>
-
+#include <boost/static_assert.hpp>
+#include <boost/geometry/core/cs.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/algorithms/transform.hpp>
-#include <boost/geometry/core/cs.hpp>
-#include <boost/static_assert.hpp>
 
 namespace boost {
     namespace astronomy {

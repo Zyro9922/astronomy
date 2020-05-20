@@ -5,9 +5,9 @@
 #include <boost/static_assert.hpp>
 #include <boost/geometry/core/cs.hpp>
 #include <boost/geometry/geometries/point.hpp>
-#include <boost/units/physical_dimensions/plane_angle.hpp>
 #include <boost/units/systems/si/plane_angle.hpp>
 #include <boost/units/systems/si/dimensionless.hpp>
+#include <boost/units/physical_dimensions/plane_angle.hpp>
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
 
 /**
@@ -41,15 +41,16 @@ namespace boost {
                         (
                                 GalacticLongitudeQuantity const &GLon,
                                 GalacticLatitudeQuantity const &GLat
-                        )
-                {
+                        ) {
                     this->set_GLon_GLat(GLon, GLat);
                 }
 
+                //Create tuple of Galactic Longitude and Galactic Latitude
                 std::tuple<GalacticLongitudeQuantity, GalacticLatitudeQuantity> get_GLon_GLat() const {
                     return std::make_tuple(this->get_GLon(), this->get_GLat());
                 }
 
+                //Get Galactic Longitude
                 GalacticLongitudeQuantity get_GLon() const {
                     return static_cast<GalacticLongitudeQuantity>
                     (
@@ -58,6 +59,7 @@ namespace boost {
                     );
                 }
 
+                //Get Galactic Latitude
                 GalacticLatitudeQuantity get_GLat() const {
                     return static_cast<GalacticLatitudeQuantity>
                     (
@@ -66,7 +68,7 @@ namespace boost {
                     );
                 }
 
-                //Set value of GLon and GLat
+                //Set value of Galactic Longitude and Galactic Latitude
                 void set_GLon_GLat
                         (
                                 GalacticLongitudeQuantity const &GLon,
@@ -76,7 +78,7 @@ namespace boost {
                     this->set_GLat(GLat);
                 }
 
-                //Set GLon
+                //Set Galactic Longitude
                 void set_GLon(GalacticLongitudeQuantity const &GLon) {
                     bg::set<0>
                             (
@@ -93,9 +95,9 @@ namespace boost {
                                     static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(GLat).value()
                             );
                 }
-
             }; //galactic_coord
 
+            //Make Galactic Coordinate
             template
                     <
                             typename CoordinateType,
@@ -129,16 +131,14 @@ namespace boost {
                             class GalacticLongitudeQuantity,
                             class GalacticLatitudeQuantity
                     >
-            std::ostream& operator<< (std::ostream &out, galactic_coord
-                    <CoordinateType, GalacticLongitudeQuantity, GalacticLatitudeQuantity> const& point)
-            {
+            std::ostream &operator<<(std::ostream &out, galactic_coord
+                    <CoordinateType, GalacticLongitudeQuantity, GalacticLatitudeQuantity> const &point) {
                 out << "Galactic Coordinate (Galactic Longitude: "
                     << point.get_GLon() << " , Galactic Latitude: "
                     << point.get_GLat() << ")";
 
                 return out;
             }
-
         }
     }
 }

@@ -5,9 +5,9 @@
 #include <boost/static_assert.hpp>
 #include <boost/geometry/core/cs.hpp>
 #include <boost/geometry/geometries/point.hpp>
-#include <boost/units/physical_dimensions/plane_angle.hpp>
 #include <boost/units/systems/si/plane_angle.hpp>
 #include <boost/units/systems/si/dimensionless.hpp>
+#include <boost/units/physical_dimensions/plane_angle.hpp>
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
 
 namespace boost {
@@ -36,15 +36,16 @@ namespace boost {
                         (
                                 AltitudeQuantity const &Altitude,
                                 AzimuthQuantity const &Azimuth
-                        )
-                        {
+                        ) {
                     this->set_Altitude_Azimuth(Altitude, Azimuth);
                 }
 
+                //Create tuple of Altitude and Azimuth
                 std::tuple<AltitudeQuantity, AzimuthQuantity> get_altitude_azimuth() const {
                     return std::make_tuple(this->get_Altitude(), this->get_Azimuth());
                 }
 
+                //Get Altitude
                 AltitudeQuantity get_Altitude() const {
                     return static_cast<AltitudeQuantity>
                     (
@@ -53,6 +54,7 @@ namespace boost {
                     );
                 }
 
+                //Get Azimuth
                 AzimuthQuantity get_Azimuth() const {
                     return static_cast<AzimuthQuantity>
                     (
@@ -91,6 +93,7 @@ namespace boost {
 
             }; //horizon_coord
 
+            //Make Horizon Coordinate
             template
                     <
                             typename CoordinateType,
@@ -124,16 +127,14 @@ namespace boost {
                             class AltitudeQuantity,
                             class AzimuthQuantity
                     >
-            std::ostream& operator<< (std::ostream &out, horizon_coord
-            <CoordinateType, AltitudeQuantity, AzimuthQuantity> const& point)
-            {
+            std::ostream &operator<<(std::ostream &out, horizon_coord
+                    <CoordinateType, AltitudeQuantity, AzimuthQuantity> const &point) {
                 out << "Horizon Coordinate (Altitude: "
                     << point.get_Altitude() << " , Azimuth: "
                     << point.get_Azimuth() << ")";
 
                 return out;
             }
-
         }
     }
 }
