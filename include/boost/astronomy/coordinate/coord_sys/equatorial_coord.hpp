@@ -2,6 +2,7 @@
 #define BOOST_ASTRONOMY_EQUATORIAL_COORD_HPP
 
 #include <iostream>
+#include <boost/units/io.hpp>
 #include <boost/geometry/core/cs.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/units/systems/angle/degrees.hpp>
@@ -16,23 +17,13 @@ namespace boost {
             namespace bg = boost::geometry;
             namespace bud = boost::units::degree;
 
-            //Angle Base Class
-            template
-                    <
-                    typename CoordinateType = double,
-                    typename AngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
-                    >
-            struct Angle {
-                virtual AngleQuantity get() {}
-            };
-
             //Right Ascension
             template
                     <
                             typename CoordinateType = double,
                             typename RightAscensionQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
                     >
-            struct RightAscension : public virtual Angle<CoordinateType,RightAscensionQuantity> {
+            struct RightAscension {
             private:
                 RightAscensionQuantity ra;
             public:
@@ -40,12 +31,12 @@ namespace boost {
 
                 RightAscension(RightAscensionQuantity const& _ra) : ra(_ra) {}
 
-                RightAscensionQuantity get() override{
+                RightAscensionQuantity const get_angle() const{
                     return ra;
                 }
 
                 void print() {
-                    std::cout << "Right Ascension: " << ra.value() << std::endl;
+                    std::cout << "Right Ascension: " << ra;
                 }
 
                 //TODO: Use SOFA to convert
@@ -59,8 +50,8 @@ namespace boost {
             template<
                     typename CoordinateType = double,
                     typename HourAngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
-                    >
-            struct HourAngle : public virtual Angle<CoordinateType,HourAngleQuantity> {
+            >
+            struct HourAngle {
             private:
                 HourAngleQuantity ha;
             public:
@@ -68,12 +59,12 @@ namespace boost {
 
                 HourAngle(HourAngleQuantity _ha) : ha(_ha) {}
 
-                HourAngleQuantity get() override{
+                HourAngleQuantity const get_angle() const{
                     return ha;
                 }
 
                 void print() {
-                    std::cout << "Hour Angle: " << ha.value() << std::endl;
+                    std::cout << "Hour Angle: " << ha;
                 }
 
 //                //TODO: Use SOFA to convert
@@ -87,16 +78,12 @@ namespace boost {
             template
                     <
                             typename CoordinateType = double,
-                            typename AngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
-                            typename XQuantity = Angle<CoordinateType,AngleQuantity>,
+                            typename XQuantity = RightAscension<CoordinateType,bu::quantity<bu::si::plane_angle, CoordinateType>>,
                             typename DeclinationQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
                     >
             struct equatorial_coord : public coord_sys
                     <2, bg::cs::spherical<bg::degree>, CoordinateType> {
             public:
-                typedef XQuantity quantity1;
-                typedef DeclinationQuantity quantity2;
-
                 //Default constructor
                 equatorial_coord() {}
 
@@ -108,20 +95,21 @@ namespace boost {
                     this->set_X_Declination(X, Declination);
                 }
 
-                std::tuple<XQuantity, DeclinationQuantity> get_X_Declination() const {
-                    return std::make_tuple(this->get_X(), this->get_Declination());
-                }
-
-                XQuantity get_X() const {
-                    return RightAscension<double,AngleQuantity>((bg::get<0>(this->point)));
-                }
-
-                DeclinationQuantity get_Declination() const {
-                    return static_cast<DeclinationQuantity>
-                    (
-                            bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                                    (bg::get<1>(this->point))
+                //Set X
+                void set_X(XQuantity const &X) {
+                    bg::set<0>(
+                            this->point,
+                            (X.get_angle()).value()
                     );
+                }
+
+                //Set Declination
+                void set_Declination(DeclinationQuantity const &Declination) {
+                    bg::set<1>
+                            (
+                                    this->point,
+                                    static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Declination).value()
+                            );
                 }
 
                 //Set value of X and Declination
@@ -134,69 +122,65 @@ namespace boost {
                     this->set_Declination(Declination);
                 }
 
-                //Set X
-                void set_X(XQuantity const &X) {
-                    bg::set<0>
-                            (
-                                    this->point,
-                                    X.get()
-                            );
+                std::tuple<XQuantity, DeclinationQuantity> get_X_Declination() const {
+                    return std::make_tuple(this->get_X(), this->get_Declination());
                 }
 
-                //Set Declination
-                void set_Declination(DeclinationQuantity const &Declination) {
-                    bg::set<1>
-                            (
-                                    this->point,
-                                    static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Declination).value()
-                            );
+                XQuantity get_X() const {
+                    XQuantity x = bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+                            (bg::get<0>(this->point));
+                    return x;
+                }
+
+                DeclinationQuantity get_Declination() const {
+                    return static_cast<DeclinationQuantity>
+                    (
+                            bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+                                    (bg::get<1>(this->point))
+                    );
                 }
 
             }; //equatorial_coord
 
-//            template
-//                    <
-//                    typename CoordinateType,
-//                    template<typename Unit1, typename CoordinateType_> class AngleQuantity,
-//                    template<typename CoordinateType_, AngleQuantity<typename Unit2, typename CoordinateType_>> class XQuantity,
-//                    template<typename Unit3, typename CoordinateType_> DeclinationQuantity ,
-//                    typename Unit1,
-//                    typename Unit2,
-//                    typename Unit3
-//                    >
-//            equatorial_coord
-//                    <
-//                            CoordinateType,
-//                            AngleQuantity<Unit1,CoordinateType>
-//                            XQuantity<CoordinateType,AngleQuantity<Unit2,CoordinateType>>,
-//                            DeclinationQuantity<Unit3, CoordinateType>
-//                    > make_equatorial_coord
-//                    (
-//                            XQuantity<CoordinateType,AngleQuantity<Unit2,CoordinateType>> const &X,
-//                            DeclinationQuantity<Unit3, CoordinateType> const &Declination
-//                    ) {
-//                return equatorial_coord
-//                        <
-//                                CoordinateType,
-//                                AngleQuantity<Unit2,CoordinateType>,
-//                                XQuantity<CoordinateType,AngleQuantity<Unit2,CoordinateType>>,
-//                                DeclinationQuantity<Unit3, CoordinateType>
-//                        >(X, Declination);
-//            }
+            //Make Equatorial Coordinate
+            template
+                    <
+                            typename CoordinateType,
+                            template<typename CoordinateType_, typename Angle> class XQuantity,
+                            template<typename Unit2, typename CoordinateType_> class DeclinationQuantity,
+                            typename Angle,
+                            typename Unit2
+                    >
+            equatorial_coord
+                    <
+                            CoordinateType,
+                            XQuantity<CoordinateType, Angle>,
+                            DeclinationQuantity<Unit2, CoordinateType>
+                    > make_equatorial_coord
+                    (
+                            XQuantity<CoordinateType, Angle> const &X,
+                            DeclinationQuantity<Unit2, CoordinateType> const &Declination
+                    ) {
+                return equatorial_coord
+                        <
+                                CoordinateType,
+                                XQuantity<CoordinateType,Angle>,
+                                DeclinationQuantity<Unit2, CoordinateType>
+                        >(X, Declination);
+            }
 
             //Print Equatorial Coordinates
             template
                     <
                             typename CoordinateType,
-                            class AngleQuantity,
                             class XQuantity,
                             class DeclinationQuantity
                     >
             std::ostream &operator<<(std::ostream &out, equatorial_coord
-                    <CoordinateType,AngleQuantity, XQuantity, DeclinationQuantity> const &point) {
-                out << "Equatorial Coordinate (X: "
-                    << point.get_X() << " , Declination: "
-                    << point.get_Declination() << ")";
+                    <CoordinateType, XQuantity, DeclinationQuantity> const &point) {
+                out << "Equatorial Coordinate (";
+                point.get_X().print();
+                out << " , Declination: " << point.get_Declination() << ")";
 
                 return out;
             }
