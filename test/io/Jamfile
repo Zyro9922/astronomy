@@ -1,0 +1,7 @@
+import testing ;
+
+run t_hdu.cpp;
+run t_card.cpp;
+run t_primary_hdu.cpp;
+run t_ascii_table.cpp;
+run t_binary_table.cpp;

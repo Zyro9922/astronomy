@@ -42,7 +42,7 @@ struct primary_hdu : public boost::astronomy::io::hdu
 protected:
     bool simple; //!Stores the value of SIMPLE
     bool extend; //!Stores the value of EXTEND
-    image<DataType> data; //!stores the image of primary HDU if any
+    image<DataType> data_; //!stores the image of primary HDU if any
 
 public:
     /**
@@ -59,26 +59,8 @@ public:
      */
     primary_hdu(std::fstream &file) : hdu(file)
     {
-        simple = this->value_of<bool>("SIMPLE");
-        extend = this->value_of<bool>("EXTEND");
 
-        //read image according to dimension specified by naxis
-        switch (this->naxis())
-        {
-        case 0:
-            break;
-        case 1:
-            data.read_image(file, this->naxis(1), 1);
-            break;
-        case 2:
-            data.read_image(file, this->naxis(1), this->naxis(2));
-            break;
-        default:
-            data.read_image(file, this->naxis(1), std::accumulate(this->naxis_.begin()+1,
-                this->naxis_.end(), 0, std::multiplies<std::size_t>()));
-            break;
-        }
-
+        init_primary_hdu(file);
         set_unit_end(file);    //set cursor to the end of the HDU unit
     }
 
@@ -94,26 +76,7 @@ public:
     */
     primary_hdu(std::fstream &file, hdu const& other) : hdu(other)
     {
-        simple = this->value_of<bool>("SIMPLE");
-        extend = this->value_of<bool>("EXTEND");
-
-        //read image according to dimension specified by naxis
-        switch (this->naxis())
-        {
-        case 0:
-            break;
-        case 1:
-            data.read_image(file, this->naxis(1), 1);
-            break;
-        case 2:
-            data.read_image(file, this->naxis(1), this->naxis(2));
-            break;
-        default:
-            data.read_image(file, this->naxis(1), std::accumulate(this->naxis_.begin()+ 1,
-                this->naxis_.end(), 0, std::multiplies<std::size_t>()));
-            break;
-        }
-
+        init_primary_hdu(file);
         set_unit_end(file);    //set cursor to the end of the HDU unit
     }
 
@@ -124,7 +87,7 @@ public:
     */
     image<DataType> get_data() const
     {
-        return this->data;
+        return this->data_;
     }
 
     /**
@@ -136,7 +99,6 @@ public:
         return this->simple;
     }
 
-    //!value of EXTEND
     /**
      * @brief   Indicates whether extentions are present in FITS file
      * @details Gets the value of <strong>EXTEND</strong> from the primary header
@@ -146,6 +108,35 @@ public:
     {
         return this->extend;
     }
+
+ private:
+     /**
+      * @brief      Initializes the primary_hdu object(simple,extend) with image data
+      * @param[in]  file filestream set to open mode for reading
+     */
+     void init_primary_hdu(std::fstream& file)
+     {
+         simple = this->value_of<bool>("SIMPLE");
+         extend = this->value_of<bool>("EXTEND");
+
+         //read image according to dimension specified by naxis
+         switch (this->total_dimensions())
+         {
+         case 0:
+             break;
+         case 1:
+             data_.read_image(file, this->naxis(1), 1);
+             break;
+         case 2:
+             data_.read_image(file, this->naxis(1), this->naxis(2));
+             break;
+         default:
+             data_.read_image(file, this->naxis(1), std::accumulate(this->naxis_.begin() + 1,
+                 this->naxis_.end(), 1, std::multiplies<std::size_t>()));
+             break;
+         }
+     }
+
 };
 
 }}} //namespace boost::astronomy::io

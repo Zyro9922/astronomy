@@ -169,12 +169,12 @@ public:
             throw fits_exception();
             break;
         }
-
-        //setting naxis values
-        naxis_.emplace_back(cards[key_index["NAXIS"]].value<std::size_t>());
-        naxis_.reserve(naxis_[0]);
-
-        for (std::size_t i = 1; i <= naxis_[0]; i++)
+                    
+        //setting naxis values ( Normal NAXIS tells the total number of dimensions
+        std::size_t total_dimensions = cards[key_index["NAXIS"]].value<std::size_t>();
+        naxis_.reserve(total_dimensions);
+                    
+        for (std::size_t i = 1; i <= total_dimensions; i++)
         {
             naxis_.emplace_back(cards[key_index["NAXIS" +
                 boost::lexical_cast<std::string>(i)]].value<std::size_t>());
@@ -208,7 +208,7 @@ public:
     */
     std::vector<std::size_t> all_naxis() const
     {
-        return this->naxis_;
+        return this->naxis_; //Total
     }
 
     /**
@@ -217,8 +217,10 @@ public:
     */
     std::size_t naxis(std::size_t n = 0) const
     {
-        return this->naxis_[n];
+        return this->naxis_[n-1]; // 1 Based indexing
     }
+
+    std::size_t total_dimensions() const { return all_naxis().size();}
 
     /**
      * @brief       Gets the value associated with a perticular keyword
@@ -241,6 +243,16 @@ public:
     {
         //set cursor to the end of the HDU unit
         file.seekg((file.tellg() + (2880 - (file.tellg() % 2880))));
+    }
+
+    /**
+     * @brief      Gets the number of cards in HDU header
+     * @return     total number of cards in HDU header
+    */
+    std::size_t card_count()
+    {
+        return cards.size()-1; // Last one is END Card ( It will not be counted )
+
     }
 
     /**
