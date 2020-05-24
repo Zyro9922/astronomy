@@ -27,12 +27,12 @@ namespace boost {
             private:
                 RightAscensionQuantity ra;
             public:
-                RightAscension() {}
+                RightAscension();
 
                 RightAscension(RightAscensionQuantity const& _ra) : ra(_ra) {}
 
-                RightAscensionQuantity const get_angle() const{
-                    return ra;
+                RightAscensionQuantity get_angle() const{
+                    return static_cast<RightAscensionQuantity>(ra);
                 }
 
                 void print() {
@@ -55,12 +55,12 @@ namespace boost {
             private:
                 HourAngleQuantity ha;
             public:
-                HourAngle() {}
+                HourAngle();
 
                 HourAngle(HourAngleQuantity _ha) : ha(_ha) {}
 
-                HourAngleQuantity const get_angle() const{
-                    return ha;
+                HourAngleQuantity get_angle() const{
+                    return static_cast<HourAngleQuantity>(ha);
                 }
 
                 void print() {
