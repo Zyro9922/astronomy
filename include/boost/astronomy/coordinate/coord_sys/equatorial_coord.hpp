@@ -27,7 +27,9 @@ namespace boost {
             private:
                 RightAscensionQuantity ra;
             public:
-                RightAscension();
+                RightAscension(){
+                    ra = 0.0 * bu::si::radian;
+                };
 
                 RightAscension(RightAscensionQuantity const& _ra) : ra(_ra) {}
 
@@ -55,7 +57,9 @@ namespace boost {
             private:
                 HourAngleQuantity ha;
             public:
-                HourAngle();
+                HourAngle(){
+                    ha = 0.0 * bu::si::radian;
+                }
 
                 HourAngle(HourAngleQuantity _ha) : ha(_ha) {}
 
