@@ -458,7 +458,7 @@ auto make_spherical_differential
     bg::set<2>(tempPoint, static_cast<typename cartesian_type::quantity1>
         (temp.get_dz()).value());
 
-    bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical<radian>> result;
+    bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical<radian>> result(0.0, 0.0, 0.0);
     bg::transform(tempPoint, result);
 
     return spherical_differential

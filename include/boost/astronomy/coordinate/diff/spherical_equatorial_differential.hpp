@@ -458,7 +458,7 @@ auto make_spherical_equatorial_differential
         (temp.get_dz()).value());
 
     bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical_equatorial
-        <radian>> result;
+        <radian>> result(0.0, 0.0, 0.0);
     bg::transform(tempPoint, result);
 
     return spherical_equatorial_differential

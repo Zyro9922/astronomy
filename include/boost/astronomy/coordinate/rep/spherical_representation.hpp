@@ -419,7 +419,7 @@ auto make_spherical_representation
     typedef decltype(temp) cartesian_type;
 
     bg::model::point<typename cartesian_type::type, 3, bg::cs::cartesian> tempPoint;
-    bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical<radian>> result;
+    bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical<radian>> result(0.0, 0.0, 0.0);
 
     bg::set<0>(tempPoint, temp.get_x().value());
     bg::set<1>

@@ -438,7 +438,7 @@ auto make_spherical_equatorial_representation
         (temp.get_z()).value());
 
     bg::model::point<typename cartesian_type::type, 3, bg::cs::spherical_equatorial
-        <radian>> result;
+        <radian>> result(0.0, 0.0, 0.0);
     bg::transform(tempPoint, result);
 
     return spherical_equatorial_representation
