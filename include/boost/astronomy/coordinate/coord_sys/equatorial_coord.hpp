@@ -25,20 +25,20 @@ namespace boost {
                     >
             struct RightAscension {
             private:
-                RightAscensionQuantity ra;
+                RightAscensionQuantity _ra;
             public:
                 RightAscension(){
-                    ra = 0.0 * bu::si::radian;
+                    _ra = 0.0 * bu::si::radian;
                 };
 
-                RightAscension(RightAscensionQuantity const& _ra) : ra(_ra) {}
+                RightAscension(RightAscensionQuantity const& ra) : _ra(ra) {}
 
                 RightAscensionQuantity get_angle() const{
-                    return static_cast<RightAscensionQuantity>(ra);
+                    return static_cast<RightAscensionQuantity>(_ra);
                 }
 
                 void print() {
-                    std::cout << "Right Ascension: " << ra;
+                    std::cout << "Right Ascension: " << _ra;
                 }
 
                 //TODO: Use SOFA to convert
@@ -55,20 +55,20 @@ namespace boost {
             >
             struct HourAngle {
             private:
-                HourAngleQuantity ha;
+                HourAngleQuantity _ha;
             public:
                 HourAngle(){
-                    ha = 0.0 * bu::si::radian;
+                    _ha = 0.0 * bu::si::radian;
                 }
 
-                HourAngle(HourAngleQuantity _ha) : ha(_ha) {}
+                HourAngle(HourAngleQuantity const& ha) : _ha(ha) {}
 
                 HourAngleQuantity get_angle() const{
-                    return static_cast<HourAngleQuantity>(ha);
+                    return static_cast<HourAngleQuantity>(_ha);
                 }
 
                 void print() {
-                    std::cout << "Hour Angle: " << ha;
+                    std::cout << "Hour Angle: " << _ha;
                 }
 
 //                //TODO: Use SOFA to convert
