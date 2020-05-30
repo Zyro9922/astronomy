@@ -20,8 +20,8 @@ template
     typename CoordinateSystem,
     typename CoordinateType=double
 >
-struct coord_sys {
-
+struct coord_sys
+{
 protected:
     bg::model::point<CoordinateType, DimensionCount, CoordinateSystem> point;
 
