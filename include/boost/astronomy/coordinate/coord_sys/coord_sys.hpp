@@ -8,35 +8,33 @@
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/algorithms/transform.hpp>
 
-namespace boost {
-    namespace astronomy {
-        namespace coordinate {
+namespace boost { namespace astronomy { namespace coordinate {
 
-            namespace bg = boost::geometry;
-            typedef bg::degree degree;
-            typedef bg::radian radian;
+namespace bg = boost::geometry;
+typedef bg::degree degree;
+typedef bg::radian radian;
 
-            template
-                    <
-                            std::size_t DimensionCount,
-                            typename CoordinateSystem,
-                            typename CoordinateType=double
-                    >
-            struct coord_sys {
+template
+<
+    std::size_t DimensionCount,
+    typename CoordinateSystem,
+    typename CoordinateType=double
+>
+struct coord_sys {
 
-            protected:
-                bg::model::point<CoordinateType, DimensionCount, CoordinateSystem> point;
+protected:
+    bg::model::point<CoordinateType, DimensionCount, CoordinateSystem> point;
 
-            public:
+public:
+    typedef CoordinateSystem system;
+    typedef CoordinateType type;
 
-                typedef CoordinateSystem system;
-                typedef CoordinateType type;
-
-                bg::model::point<CoordinateType, DimensionCount, CoordinateSystem> get_point() const {
-                    return this->point;
-                }
-            }; //coord_sys
-        }
+    bg::model::point<CoordinateType, DimensionCount, CoordinateSystem> get_point() const
+    {
+        return this->point;
     }
-}
+}; //coord_sys
+
+}}}
+
 #endif //BOOST_ASTRONOMY_COORD_SYS_HPP
