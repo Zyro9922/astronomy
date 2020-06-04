@@ -13,7 +13,6 @@ namespace boost { namespace astronomy { namespace coordinate {
 
 namespace bu = boost::units;
 namespace bg = boost::geometry;
-namespace bud = boost::units::degree;
 
 //Right Ascension
 template
