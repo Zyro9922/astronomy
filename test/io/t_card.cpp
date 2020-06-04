@@ -72,11 +72,15 @@ public:
 
 
         // Floating Point Card
-        std::string raw_float_card = "SUNANGLE=           141.618347 /angle between sun and V1 axis                   ";
+        std::string raw_float_card =
+            "SUNANGLE=              141.618 /angle between sun and V1 axis";
+        raw_float_card.append(80 - raw_float_card.length(), ' ');
+
+
         fixture_card float_card;
         float_card.raw_form = raw_float_card ;
         float_card.key = "SUNANGLE";
-        float_card.value = "141.618347";
+        float_card.value = "141.618";
         float_card.comment = "angle between sun and V1 axis";
         card_list.emplace("floating_card", float_card);
 

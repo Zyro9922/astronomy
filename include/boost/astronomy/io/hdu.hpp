@@ -259,7 +259,7 @@ public:
      * @brief       Virtual destructor allowing hdu to be a polymorphic base for derived classes
     */
     virtual ~hdu() {}
-    virtual std::unique_ptr<column> get_column(std::string name) const
+    virtual std::unique_ptr<column> get_column(std::string) const
     {
         throw wrong_extension_type();
     }

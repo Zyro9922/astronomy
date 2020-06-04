@@ -120,25 +120,25 @@ struct ascii_table : public table_extension {
             "TTYPE" + boost::lexical_cast<std::string>(i + 1)));
 
         col_metadata_[i].comment(value_of<std::string>(col_metadata_[i].TTYPE()));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TUNIT(value_of<std::string>(
             "TUNIT" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TSCAL(value_of<double>(
             "TSCAL" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TZERO(value_of<double>(
             "TZERO" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
     }
   }
@@ -218,7 +218,7 @@ struct ascii_table : public table_extension {
     std::string form = boost::trim_copy_if(
         format, [](char c) -> bool { return c == '\'' || c == ' '; });
     std::size_t decimal = form.length();
-    for (int i = 0; i < form.length(); i++) {
+    for (std::size_t i = 0; i < form.length(); i++) {
       if (form[i] == '.') {
         decimal = i;
         break;

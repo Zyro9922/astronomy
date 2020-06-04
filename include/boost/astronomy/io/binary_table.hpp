@@ -128,37 +128,37 @@ struct binary_table_extension : table_extension {
             "TTYPE" + boost::lexical_cast<std::string>(i + 1)));
 
         col_metadata_[i].comment(value_of<std::string>(col_metadata_[i].TTYPE()));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TUNIT(value_of<std::string>(
             "TUNIT" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TSCAL(value_of<double>(
             "TSCAL" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TZERO(value_of<double>(
             "TZERO" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TDISP(value_of<std::string>(
             "TDISP" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
 
       try {
         col_metadata_[i].TDIM(value_of<std::string>(
             "TDIM" + boost::lexical_cast<std::string>(i + 1)));
-      } catch (std::out_of_range e) { /*Do Nothing*/
+      } catch (std::out_of_range&) { /*Do Nothing*/
       }
     }
   }
@@ -324,284 +324,20 @@ struct binary_table_extension : table_extension {
   std::unique_ptr<column_data<T>> parse_to(const column& col_metadata) {
     return nullptr;
   }
-  template <>
-  std::unique_ptr<column_data<bool>> parse_to(const column& col_metadata) {
-    auto result = std::make_unique<column_data<bool>>(col_metadata);
-
-    auto single_bool = [](const std::string& element) {
-      return element[0] == 'T';
-    };
-
-    fill_col(result->get_data(), col_metadata, single_bool);
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<bool>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<bool>>>(col_metadata);
-    std::size_t no_elements = element_count(col_metadata.TFORM());
-    auto multi_bool = [no_elements](const std::string& element_coll) {
-      std::vector<bool> values;
-      for (auto element : element_coll) {
-        values.emplace_back(element == 'T');
-      }
-      return values;
-    };
-    fill_col(result->get_data(), col_metadata, multi_bool);
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::int16_t>> parse_to(
-      const column& col_metadata) {
-    auto result = std::make_unique<column_data<std::int16_t>>(col_metadata);
-
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_numeric<std::int16_t>,
-                  this, _1));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::int16_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::int16_t>>>(col_metadata);
-
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::elements_to_numeric_collection<
-                           std::int16_t>,
-                       this, _1, element_count(col_metadata.TFORM())));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::int32_t>> parse_to(
-      const column& col_metadata) {
-    auto result = std::make_unique<column_data<std::int32_t>>(col_metadata);
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_numeric<std::int32_t>,
-                  this, _1));
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::int32_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::int32_t>>>(col_metadata);
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::elements_to_numeric_collection<
-                           std::int32_t>,
-                       this, _1, element_count(col_metadata.TFORM())));
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::float_t>> parse_to(
-      const column& col_metadata) {
-    auto result = std::make_unique<column_data<std::float_t>>(col_metadata);
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_numeric<std::float_t,
-                                                              std::int32_t>,
-                  this, _1));
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::float_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::float_t>>>(col_metadata);
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::elements_to_numeric_collection<
-                           std::float_t, std::int32_t>,
-                       this, _1, element_count(col_metadata.TFORM())));
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::double_t>> parse_to(
-      const column& col_metadata) {
-    auto result = std::make_unique<column_data<std::double_t>>(col_metadata);
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_numeric<std::double_t,
-                                                              std::int64_t>,
-                  this, _1));
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::double_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::double_t>>>(col_metadata);
-
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::elements_to_numeric_collection<
-                           std::double_t, std::int64_t>,
-                       this, _1, element_count(col_metadata.TFORM())));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::pair<std::int32_t, std::int32_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::pair<std::int32_t, std::int32_t>>>(
-            col_metadata);
-
-    auto element_to_descriptor = [](const std::string& element) {
-      auto x = boost::endian::big_to_native(
-          *reinterpret_cast<const std::int32_t*>(element.c_str()));
-      auto y = boost::endian::big_to_native(
-          *(reinterpret_cast<const std::int32_t*>(element.c_str()) + 1));
-      return std::make_pair(x, y);
-    };
-
-    fill_col(result->get_data(), col_metadata, element_to_descriptor);
-    return result;
-  }
-  template <>
-  std::unique_ptr<
-      column_data<std::vector<std::pair<std::int32_t, std::int32_t>>>>
-  parse_to(const column& col_metadata) {
-    auto result = std::make_unique<
-        column_data<std::vector<std::pair<std::int32_t, std::int32_t>>>>(
-        col_metadata);
-
-    auto no_elements = element_count(col_metadata.TFORM());
-    auto elements_to_descriptors = [no_elements](const std::string& elements) {
-      std::vector<std::pair<std::int32_t, std::int32_t>> values;
-      values.reserve(no_elements);
-      for (std::size_t i = 0; i < no_elements; i++) {
-        values.emplace_back(
-            boost::endian::big_to_native(
-                *(reinterpret_cast<const std::int32_t*>(elements.c_str()) + i)),
-            boost::endian::big_to_native(
-                *(reinterpret_cast<const std::int32_t*>(elements.c_str()) + i +
-                  1)));
-      }
-      return values;
-    };
-
-    fill_col(result->get_data(), col_metadata, elements_to_descriptors);
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::complex<std::float_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::complex<std::float_t>>>(col_metadata);
-
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_complex<std::float_t,
-                                                              std::int32_t>,
-                  this, _1));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::complex<std::float_t>>>>
-  parse_to(const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::complex<std::float_t>>>>(
-            col_metadata);
-
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::elements_to_complex_collection<
-                           std::float_t, std::int32_t>,
-                       this, _1, element_count(col_metadata.TFORM())));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::complex<std::double_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::complex<double_t>>>(col_metadata);
-
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_complex<std::double_t,
-                                                              std::int64_t>,
-                  this, _1));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::complex<std::double_t>>>>
-  parse_to(const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::complex<std::double_t>>>>(
-            col_metadata);
-
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::elements_to_complex_collection<
-                           std::double_t, std::int64_t>,
-                       this, _1, element_count(col_metadata.TFORM())));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::uint8_t>> parse_to(
-      const column& col_metadata) {
-    auto result = std::make_unique<column_data<std::uint8_t>>(col_metadata);
-    fill_col(result->get_data(), col_metadata,
-             std::bind(&binary_table_extension::element_to_byte<std::uint8_t>,
-                       this, _1));
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<std::uint8_t>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<std::uint8_t>>>(col_metadata);
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(
-            &binary_table_extension::elements_to_byte_collection<std::uint8_t>,
-            this, _1, element_count(col_metadata.TFORM())));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<char>> parse_to(const column& col_metadata) {
-    auto result = std::make_unique<column_data<char>>(col_metadata);
-
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::element_to_byte<char>, this, _1));
-
-    return result;
-  }
-  template <>
-  std::unique_ptr<column_data<std::vector<char>>> parse_to(
-      const column& col_metadata) {
-    auto result =
-        std::make_unique<column_data<std::vector<char>>>(col_metadata);
-
-    fill_col(
-        result->get_data(), col_metadata,
-        std::bind(&binary_table_extension::elements_to_byte_collection<char>,
-                  this, _1, element_count(col_metadata.TFORM())));
-
-    return result;
-  }
   // TODO : Refactor  it into a seperate class if required
   template <typename NumericType, typename AssumeType = NumericType>
   NumericType element_to_numeric(const std::string& element) {
     AssumeType temp = boost::endian::big_to_native(
         *reinterpret_cast<const AssumeType*>(element.c_str()));
-    NumericType value = *reinterpret_cast<const NumericType*>(&temp);
+
+    NumericType value;
+    std::memcpy(&value, &temp, sizeof(NumericType));
     return value;
   }
 
   template <typename NumericType, typename AssumeType = NumericType>
   std::vector<NumericType> elements_to_numeric_collection(
-      const std::string& elements, int no_elements) {
+      const std::string& elements, std::size_t no_elements) {
     std::vector<NumericType> values;
     values.resize(no_elements);
 
@@ -613,59 +349,399 @@ struct binary_table_extension : table_extension {
       AssumeType temp = boost::endian::big_to_native(
           *reinterpret_cast<const AssumeType*>(&element));
 
-      NumericType value = *reinterpret_cast<const NumericType*>(&temp);
+      NumericType value;
+      std::memcpy(&value, &temp, sizeof(NumericType));
       return value;
     });
 
     return values;
   }
   template <typename ComplexType, typename AssumeType = ComplexType>
-  auto element_to_complex(const std::string& element) {
+  std::complex<ComplexType> element_to_complex(const std::string& element) {
     AssumeType temp_real = boost::endian::big_to_native(
         *reinterpret_cast<const AssumeType*>(element.c_str()));
 
-    ComplexType real = *reinterpret_cast<const ComplexType*>(&temp_real);
+    ComplexType real;
+    std::memcpy(&real, &temp_real, sizeof(ComplexType));
+
     AssumeType temp_imaginary = boost::endian::big_to_native(
         *(reinterpret_cast<const AssumeType*>(element.c_str()) + 1));
-    ComplexType imaginary =
-        *reinterpret_cast<const ComplexType*>(&temp_imaginary);
+    ComplexType imaginary;
+    std::memcpy(&imaginary, &temp_imaginary, sizeof(ComplexType));
 
     return std::complex<ComplexType>(real, imaginary);
   }
 
   template <typename ComplexType, typename AssumeType = ComplexType>
-  auto elements_to_complex_collection(const std::string& elements,
-                                      int no_elements) {
+  std::vector<std::complex<ComplexType>> elements_to_complex_collection(const std::string& elements,
+                                      std::size_t no_elements) {
     std::vector<std::complex<ComplexType>> values;
     values.reserve(no_elements);
 
     for (std::size_t i = 0; i < no_elements; i++) {
       std::complex<ComplexType> value;
 
-      AssumeType temp_real = static_cast<AssumeType>(boost::endian::big_to_native(
-          *reinterpret_cast<const AssumeType*>(elements.c_str()) + 2 * i));
-      ComplexType real = *reinterpret_cast<const ComplexType*>(&temp_real);
-      AssumeType temp_imaginary =static_cast<AssumeType>( boost::endian::big_to_native(
-          *reinterpret_cast<const AssumeType*>(elements.c_str()) + 2 * i + 1));
-      ComplexType imaginary =
-          *reinterpret_cast<const ComplexType*>(&temp_imaginary);
+      AssumeType temp_real =
+          static_cast<AssumeType>(boost::endian::big_to_native(
+              *reinterpret_cast<const AssumeType*>(elements.c_str()) + 2 * i));
+      ComplexType real;
+      std::memcpy(&real, &temp_real, sizeof(ComplexType));
 
+      AssumeType temp_imaginary =
+          static_cast<AssumeType>(boost::endian::big_to_native(
+              *reinterpret_cast<const AssumeType*>(elements.c_str()) + 2 * i +
+              1));
+      ComplexType imaginary;
+      std::memcpy(&imaginary, &temp_imaginary, sizeof(ComplexType));
       values.emplace_back(std::complex<ComplexType>(real, imaginary));
     }
     return values;
   }
   template <typename ByteType>
-  auto element_to_byte(const std::string& element) {
+  ByteType element_to_byte(const std::string& element) {
     return boost::lexical_cast<ByteType>(element);
   }
 
   template <typename ByteType>
-  auto elements_to_byte_collection(const std::string& elements,
-                                   int no_elements) {
+  std::vector<ByteType> elements_to_byte_collection(const std::string& elements,
+                                   std::size_t no_elements) {
     return std::vector<ByteType>(elements.begin(),
                                  elements.begin() + no_elements);
   }
+
 };
+
+ template <>
+std::unique_ptr<column_data<bool>> binary_table_extension::parse_to(const column& col_metadata) {
+  auto result = std::make_unique<column_data<bool>>(col_metadata);
+
+  auto single_bool = [](const std::string& element) {
+    return element[0] == 'T';
+  };
+
+  fill_col(result->get_data(), col_metadata, single_bool);
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<bool>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::vector<bool>>>(col_metadata);
+  auto multi_bool = [](const std::string& element_coll) {
+    std::vector<bool> values;
+    for (auto element : element_coll) {
+      values.emplace_back(element == 'T');
+    }
+    return values;
+  };
+  fill_col(result->get_data(), col_metadata, multi_bool);
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::int16_t>> binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::int16_t>>(col_metadata);
+
+  fill_col(result->get_data(), col_metadata,
+           [this](const std::string& element) {
+             return element_to_numeric<std::int16_t>(element);
+           });
+          /* std::bind(&binary_table_extension::element_to_numeric<std::int16_t>,
+                     this, _1));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::int16_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::int16_t>>>(col_metadata);
+
+  fill_col(
+      result->get_data(), col_metadata,
+           [this,&col_metadata](const std::string& elements) {
+          return elements_to_numeric_collection<std::int16_t>(elements,element_count(col_metadata.TFORM()));
+           });
+
+     /* std::bind(
+          &binary_table_extension::elements_to_numeric_collection<std::int16_t>,
+          this, _1, element_count(col_metadata.TFORM())));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::int32_t>> binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::int32_t>>(col_metadata);
+  fill_col(result->get_data(), col_metadata,
+           [this](const std::string& element) {
+             return element_to_numeric<std::int32_t>(element);
+           });
+         /*  std::bind(&binary_table_extension::element_to_numeric<std::int32_t>,
+                     this, _1));*/
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::int32_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::int32_t>>>(col_metadata);
+  fill_col(result->get_data(), col_metadata,
+           [this, &col_metadata](const std::string& elements) {
+             return elements_to_numeric_collection<std::int32_t>(
+                 elements, element_count(col_metadata.TFORM()));
+           });
+      /*std::bind(
+          &binary_table_extension::elements_to_numeric_collection<std::int32_t>,
+          this, _1, element_count(col_metadata.TFORM())));*/
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::float_t>> binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::float_t>>(col_metadata);
+  fill_col(result->get_data(), col_metadata,
+           [this](const std::string& element) {
+             return element_to_numeric<std::float_t, std::int32_t>(element);
+           });
+         /*  std::bind(&binary_table_extension::element_to_numeric<std::float_t,
+                                                                 std::int32_t>,
+                     this, _1));*/
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::float_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::float_t>>>(col_metadata);
+  fill_col(result->get_data(), col_metadata,
+           [this, &col_metadata](const std::string& elements) {
+             return elements_to_numeric_collection<std::float_t, std::int32_t>(
+                 elements, element_count(col_metadata.TFORM()));
+           });
+           /*std::bind(&binary_table_extension::elements_to_numeric_collection<
+                         std::float_t, std::int32_t>,
+                     this, _1, element_count(col_metadata.TFORM())));*/
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::double_t>> binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::double_t>>(col_metadata);
+  fill_col(result->get_data(), col_metadata, [this](const std::string& element) {
+
+      return element_to_numeric<std::double_t, std::int64_t>(element);
+      });
+         /*  std::bind(&binary_table_extension::element_to_numeric<std::double_t,
+                                                                 std::int64_t>,
+                     this, _1));*/
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::double_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::double_t>>>(col_metadata);
+
+  fill_col(result->get_data(), col_metadata, [this,&col_metadata](const std::string& elements) {
+
+        return elements_to_numeric_collection<std::double_t, std::int64_t>(
+                 elements, element_count(col_metadata.TFORM()));
+
+      });
+         /*  std::bind(&binary_table_extension::elements_to_numeric_collection<
+                         std::double_t, std::int64_t>,
+                     this, _1, element_count(col_metadata.TFORM())));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::pair<std::int32_t, std::int32_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::pair<std::int32_t, std::int32_t>>>(
+          col_metadata);
+
+  auto element_to_descriptor = [](const std::string& element) {
+    auto x = boost::endian::big_to_native(
+        *reinterpret_cast<const std::int32_t*>(element.c_str()));
+    auto y = boost::endian::big_to_native(
+        *(reinterpret_cast<const std::int32_t*>(element.c_str()) + 1));
+    return std::make_pair(x, y);
+  };
+
+  fill_col(result->get_data(), col_metadata, element_to_descriptor);
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::pair<std::int32_t, std::int32_t>>>>
+binary_table_extension::parse_to(const column& col_metadata) {
+  auto result = std::make_unique<
+      column_data<std::vector<std::pair<std::int32_t, std::int32_t>>>>(
+      col_metadata);
+
+  auto no_elements = element_count(col_metadata.TFORM());
+  auto elements_to_descriptors = [no_elements](const std::string& elements) {
+    std::vector<std::pair<std::int32_t, std::int32_t>> values;
+    values.reserve(no_elements);
+    for (std::size_t i = 0; i < no_elements; i++) {
+      values.emplace_back(
+          boost::endian::big_to_native(
+              *(reinterpret_cast<const std::int32_t*>(elements.c_str()) + i)),
+          boost::endian::big_to_native(
+              *(reinterpret_cast<const std::int32_t*>(elements.c_str()) + i +
+                1)));
+    }
+    return values;
+  };
+
+  fill_col(result->get_data(), col_metadata, elements_to_descriptors);
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::complex<std::float_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::complex<std::float_t>>>(col_metadata);
+
+  fill_col(result->get_data(), col_metadata, [this](const std::string& element) {
+
+      return element_to_complex<std::float_t, std::int32_t>(element);
+
+      });
+           //std::bind(&binary_table_extension::element_to_complex<std::float_t,
+           //                                                      std::int32_t>,
+           //          this, _1));
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::complex<std::float_t>>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::complex<std::float_t>>>>(
+          col_metadata);
+
+  fill_col(result->get_data(), col_metadata, [this,&col_metadata](const std::string& elements) {
+
+      return elements_to_complex_collection<std::float_t, std::int32_t>(
+                 elements, element_count(col_metadata.TFORM()));
+
+      });
+         /*  std::bind(&binary_table_extension::elements_to_complex_collection<
+                         std::float_t, std::int32_t>,
+                     this, _1, element_count(col_metadata.TFORM())));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::complex<std::double_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::complex<double_t>>>(col_metadata);
+
+  fill_col(result->get_data(), col_metadata,
+           [this](const std::string& element) {
+             return element_to_complex<std::double_t, std::int64_t>(element);
+           });
+         /*  std::bind(&binary_table_extension::element_to_complex<std::double_t,
+                                                                 std::int64_t>,
+                     this, _1));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::complex<std::double_t>>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::complex<std::double_t>>>>(
+          col_metadata);
+
+  fill_col(result->get_data(), col_metadata,
+           [this, &col_metadata](const std::string& elements) {
+             return elements_to_complex_collection<std::double_t, std::int64_t>(
+                 elements,element_count(col_metadata.TFORM()));
+           });
+           /*std::bind(&binary_table_extension::elements_to_complex_collection<
+                         std::double_t, std::int64_t>,
+                     this, _1, element_count(col_metadata.TFORM())));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::uint8_t>> binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::uint8_t>>(col_metadata);
+  fill_col(result->get_data(), col_metadata,
+           [this](const std::string& element) {
+
+          return element_to_byte<std::uint8_t>(element);
+      });
+      /*     std::bind(&binary_table_extension::element_to_byte<std::uint8_t>,
+                     this, _1));*/
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<std::uint8_t>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result =
+      std::make_unique<column_data<std::vector<std::uint8_t>>>(col_metadata);
+  fill_col(result->get_data(), col_metadata, [this,&col_metadata](const std::string& elements) {
+
+          return elements_to_byte_collection<std::uint8_t>(
+                 elements, element_count(col_metadata.TFORM()));
+
+      });
+     /* std::bind(
+          &binary_table_extension::elements_to_byte_collection<std::uint8_t>,
+          this, _1, element_count(col_metadata.TFORM())));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<char>> binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<char>>(col_metadata);
+
+  fill_col(result->get_data(), col_metadata, [this](const std::string& element) {
+
+            return element_to_byte<char>(element);
+
+      });
+      /*     std::bind(&binary_table_extension::element_to_byte<char>, this, _1));*/
+
+  return result;
+}
+template <>
+std::unique_ptr<column_data<std::vector<char>>>
+binary_table_extension::parse_to(
+    const column& col_metadata) {
+  auto result = std::make_unique<column_data<std::vector<char>>>(col_metadata);
+
+  fill_col(result->get_data(), col_metadata, [this,&col_metadata](const std::string& elements) {
+
+      return elements_to_byte_collection<char>(
+                 elements, element_count(col_metadata.TFORM()));
+
+      });
+     /*      std::bind(&binary_table_extension::elements_to_byte_collection<char>,
+                     this, _1, element_count(col_metadata.TFORM())));*/
+
+  return result;
+}
+
 
 }  // namespace io
 }  // namespace astronomy

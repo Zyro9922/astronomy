@@ -190,9 +190,11 @@ struct card {
                    std::string const& comment = "") {
     std::string val;
 
-    // For floating point numbers string stream is used to represent the number
-    // in compact form ( scientific notation)
-    boost::hana::eval_if(
+    std::stringstream value_stream;
+    value_stream << value;
+    val = value_stream.str();
+
+    /*boost::hana::eval_if(
         boost::is_same<double, Value>::value,
         [&val, &value](void) { val = std::to_string(value); },
         [&val, &value](void) {
@@ -201,7 +203,7 @@ struct card {
           val = value_stream.str();
         }
 
-    );
+    );*/
 
     val.insert(0, 20 - val.length(), ' ');
     create_card(key, val, comment,value_type::numeric_val);
