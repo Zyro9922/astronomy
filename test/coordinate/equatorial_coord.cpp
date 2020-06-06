@@ -20,14 +20,14 @@ BOOST_AUTO_TEST_SUITE(angle)
 
     BOOST_AUTO_TEST_CASE(right_ascension) {
         //Create object of Right Ascension
-        RightAscension<double, quantity<bud::plane_angle,double> >
+        RightAscension<double, quantity<bud::plane_angle>>
                 ra(25.0 * bud::degrees);
 
         //Check value
         BOOST_CHECK_CLOSE(ra.get_angle().value(), 25.0, 0.001);
 
         //Quantity stored as expected?
-        BOOST_TEST((std::is_same<decltype(ra.get_angle()), quantity<bud::plane_angle,double> >::value));
+        BOOST_TEST((std::is_same<decltype(ra.get_angle()), quantity<bud::plane_angle>>::value));
     }
 
 BOOST_AUTO_TEST_SUITE_END()
