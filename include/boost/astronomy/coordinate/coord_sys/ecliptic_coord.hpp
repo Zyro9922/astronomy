@@ -51,8 +51,8 @@ struct ecliptic_coord : public coord_sys
     <2, bg::cs::spherical<bg::degree>, CoordinateType>
 {
 public:
-    typedef LatQuantity quantity2;
-    typedef LonQuantity quantity1;
+    typedef LatQuantity quantity1;
+    typedef LonQuantity quantity2;
 
     //Default constructor
     ecliptic_coord() {}
@@ -66,8 +66,8 @@ public:
         this->set_lat_lon(Lat, Lon);
     }
 
-    //Create a tuple of Ecliptic Longitude and Ecliptic Latitude
-    std::tuple<LatQuantity, LonQuantity> get_lon_lat() const
+    //Create a tuple of Ecliptic Latitude and Ecliptic Longitude
+    std::tuple<LatQuantity, LonQuantity> get_lat_lon() const
     {
         return std::make_tuple(this->get_lat(), this->get_lon());
     }
@@ -78,7 +78,7 @@ public:
         return static_cast<LatQuantity>
         (
             bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                    (bg::get<1>(this->point))
+                    (bg::get<0>(this->point))
         );
     }
 
@@ -88,11 +88,11 @@ public:
         return static_cast<LonQuantity>
         (
                 bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                        (bg::get<0>(this->point))
+                        (bg::get<1>(this->point))
         );
     }
 
-    //Set value of Ecliptic Longitude and Ecliptic Latitude
+    //Set value of Ecliptic Latitude and Ecliptic Longitude
     void set_lat_lon
     (
             LatQuantity const &Lat,
@@ -106,20 +106,20 @@ public:
     //Set Ecliptic Latitude
     void set_lat(LatQuantity const &Lat)
     {
-        bg::set<1>
-                (
-                        this->point,
-                        static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lat).value()
-                );
+        bg::set<0>
+            (
+                this->point,
+                static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lat).value()
+            );
     }
 
     //Set Ecliptic Longitude
     void set_lon(LonQuantity const &Lon)
     {
-        bg::set<0>
+        bg::set<1>
             (
-            this->point,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lon).value()
+                this->point,
+                static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lon).value()
             );
     }
 
@@ -141,8 +141,8 @@ ecliptic_coord
     LonQuantity<Unit1, CoordinateType>
 > make_ecliptic_coord
 (
-        LatQuantity<Unit2, CoordinateType> const &Lat,
-        LonQuantity<Unit1, CoordinateType> const &Lon
+    LatQuantity<Unit2, CoordinateType> const &Lat,
+    LonQuantity<Unit1, CoordinateType> const &Lon
 )
 {
     return ecliptic_coord

@@ -11,6 +11,7 @@
 namespace boost { namespace astronomy { namespace coordinate {
 
 namespace bg = boost::geometry;
+
 typedef bg::degree degree;
 typedef bg::radian radian;
 
