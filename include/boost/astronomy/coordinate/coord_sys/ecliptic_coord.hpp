@@ -11,7 +11,29 @@
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
 
 /**
- * Uses vernal equinox, à, as its reference direction
+ * The plane containing the Earth’s orbit around the Sun is called
+ * the ecliptic and the other planets in our Solar System also move
+ * in orbits close to this plane.
+ *
+ * When making calculations on objects in the Solar System it is
+ * therefore often convenient to define positions with respect to
+ * the ecliptic, that is, to use the ecliptic coordinate system.
+ *
+ * Ecliptic Latitude
+ * The ecliptic plane is extended until it intersects the celestial
+ * sphere to create an “ecliptic equator” as the reference point from
+ * which Ecliptic Latitudes are measured. The Ecliptic Latitude, denoted
+ * by β, is the angular distance that an object P lies above or below the
+ * ecliptic plane and falls within the range ±90◦.
+ * Latitudes above the ecliptic plane are positive angles while latitudes
+ * below the ecliptic plane are negative angles. An object, such as the Sun,
+ * whose orbit lies entirely within the ecliptic plane has an ecliptic latitude
+ * of 0◦.
+ *
+ * Ecliptic Longitude
+ * The Ecliptic Longitude, designated by λ, measures how far away an object is
+ * from the First Point of Aries. The Ecliptic Longitude is in the range [0◦, 360◦]
+ * and measured along the ecliptic toward the First Point of Aries.
  */
 
 namespace boost { namespace astronomy { namespace coordinate {
@@ -22,82 +44,82 @@ namespace bg = boost::geometry;
 template
 <
     typename CoordinateType = double,
-    typename EclipticLonQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
-    typename EclipticLatQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
+    typename LatQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
+    typename LonQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct ecliptic_coord : public coord_sys
     <2, bg::cs::spherical<bg::degree>, CoordinateType>
 {
 public:
-    typedef EclipticLonQuantity quantity1;
-    typedef EclipticLatQuantity quantity2;
+    typedef LatQuantity quantity2;
+    typedef LonQuantity quantity1;
 
     //Default constructor
     ecliptic_coord() {}
 
     ecliptic_coord
     (
-        EclipticLonQuantity const &EclipticLon,
-        EclipticLatQuantity const &EclipticLat
+            LatQuantity const &Lat,
+            LonQuantity const &Lon
     )
     {
-        this->set_EclipticLon_EclipticLat(EclipticLon, EclipticLat);
+        this->set_lat_lon(Lat, Lon);
     }
 
     //Create a tuple of Ecliptic Longitude and Ecliptic Latitude
-    std::tuple<EclipticLonQuantity, EclipticLatQuantity> get_EclipticLon_EclipticLat() const
+    std::tuple<LatQuantity, LonQuantity> get_lon_lat() const
     {
-        return std::make_tuple(this->get_EclipticLon(), this->get_EclipticLat());
-    }
-
-    //Get Ecliptic Longitude
-    EclipticLonQuantity get_EclipticLon() const
-    {
-        return static_cast<EclipticLonQuantity>
-        (
-            bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                    (bg::get<0>(this->point))
-        );
+        return std::make_tuple(this->get_lat(), this->get_lon());
     }
 
     //Get Ecliptic Latitude
-    EclipticLatQuantity get_EclipticLat() const
+    LatQuantity get_lat() const
     {
-        return static_cast<EclipticLatQuantity>
+        return static_cast<LatQuantity>
         (
             bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
                     (bg::get<1>(this->point))
         );
     }
 
+    //Get Ecliptic Longitude
+    LonQuantity get_lon() const
+    {
+        return static_cast<LonQuantity>
+        (
+                bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+                        (bg::get<0>(this->point))
+        );
+    }
+
     //Set value of Ecliptic Longitude and Ecliptic Latitude
-    void set_EclipticLon_EclipticLat
+    void set_lat_lon
     (
-        EclipticLonQuantity const &EclipticLon,
-        EclipticLatQuantity const &EclipticLat
+            LatQuantity const &Lat,
+            LonQuantity const &Lon
     )
     {
-        this->set_EclipticLon(EclipticLon);
-        this->set_EclipticLat(EclipticLat);
+        this->set_lat(Lat);
+        this->set_lon(Lon);
+    }
+
+    //Set Ecliptic Latitude
+    void set_lat(LatQuantity const &Lat)
+    {
+        bg::set<1>
+                (
+                        this->point,
+                        static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lat).value()
+                );
     }
 
     //Set Ecliptic Longitude
-    void set_EclipticLon(EclipticLonQuantity const &EclipticLon)
+    void set_lon(LonQuantity const &Lon)
     {
         bg::set<0>
             (
             this->point,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(EclipticLon).value()
-            );
-    }
-
-    //Set Ecliptic Latitude
-    void set_EclipticLat(EclipticLatQuantity const &EclipticLat)
-    {
-        bg::set<1>
-            (
-            this->point,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(EclipticLat).value()
+            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lon).value()
             );
     }
 
@@ -107,42 +129,42 @@ public:
 template
 <
     typename CoordinateType,
-    template<typename Unit1, typename CoordinateType_> class EclipticLonQuantity,
-    template<typename Unit2, typename CoordinateType_> class EclipticLatQuantity,
+    template<typename Unit2, typename CoordinateType_> class LatQuantity,
+    template<typename Unit1, typename CoordinateType_> class LonQuantity,
     typename Unit1,
     typename Unit2
 >
 ecliptic_coord
 <
     CoordinateType,
-    EclipticLonQuantity<Unit1, CoordinateType>,
-    EclipticLatQuantity<Unit2, CoordinateType>
+    LatQuantity<Unit2, CoordinateType>,
+    LonQuantity<Unit1, CoordinateType>
 > make_ecliptic_coord
 (
-    EclipticLonQuantity<Unit1, CoordinateType> const &EclipticLon,
-    EclipticLatQuantity<Unit2, CoordinateType> const &EclipticLat
+        LatQuantity<Unit2, CoordinateType> const &Lat,
+        LonQuantity<Unit1, CoordinateType> const &Lon
 )
 {
     return ecliptic_coord
         <
             CoordinateType,
-            EclipticLonQuantity<Unit1, CoordinateType>,
-            EclipticLatQuantity<Unit2, CoordinateType>
-        > (EclipticLon, EclipticLat);
+            LatQuantity<Unit2, CoordinateType>,
+            LonQuantity<Unit1, CoordinateType>
+        > (Lat, Lon);
 }
 
 //Print Ecliptic Coordinates
 template
 <
     typename CoordinateType,
-    class EclipticLonQuantity,
-    class EclipticLatQuantity
+    class LatQuantity,
+    class LonQuantity
 >
 std::ostream &operator<<(std::ostream &out, ecliptic_coord
-        <CoordinateType, EclipticLonQuantity, EclipticLatQuantity> const &point) {
-    out << "Ecliptic Coordinate (Ecliptic Longitude: "
-        << point.get_EclipticLon() << " , Ecliptic Latitude: "
-        << point.get_EclipticLat() << ")";
+        <CoordinateType, LatQuantity, LonQuantity> const &point) {
+    out << "Ecliptic Coordinate (Ecliptic Latitude: "
+        << point.get_lat() << " , Ecliptic Longitude: "
+        << point.get_lon() << ")";
 
     return out;
 }
