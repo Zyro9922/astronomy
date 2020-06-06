@@ -9,6 +9,37 @@
 #include <boost/units/systems/si/plane_angle.hpp>
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
 
+/**
+ * The Equatorial Coordinates, are referred to the plane of the Earth’s equator
+ *
+ * Declination
+ * Declination is analogous to latitude and indicates how far away an object is
+ * from the celestial equator. Declination is int the range ±90◦ with positive
+ * angles indicating locations north of the celestial equator and negative angles
+ * indicating locations south of the celestial equator. Because declination is
+ * measured with respect to the celestial equator, and the celestial equator’s
+ * location does not vary with time of day or an observer’s location, declination
+ * for an object is fixed and does not vary with the time of day or an
+ * observer’s location.
+ *
+ * Right Ascension
+ * Right ascension is analogous to longitude and indicates how far an object is away
+ * from the First Point of Aries, which is the point used to define a celestial prime meridian.
+ * It measures the distance from an object to the celestial prime meridian. As with declination,
+ * right ascension does not vary with time of day or an observer’s location because it is measured
+ * with respect to a fixed location (the First Point of Aries).
+ *
+ * Hour Angle
+ * If we use an observer’s meridian instead of the celestial prime meridian as a reference point,
+ * we have another way to measure “celestial longitude" called “hour angle” (H). While right ascension
+ * is an angular measurement (although expressed in HMS format) of an object’s distance from the First
+ * Point of Aries, hour angle is very much a time measurement. The hour angle for an object is a measure
+ * of how long it has been since the object crossed an observer’s meridian.
+ * Because of the way that an hour angle is defined (i.e., relative to an observer’s local celestial meridian),
+ * it varies both with time of day and an observer’s location.
+ *
+**/
+
 namespace boost { namespace astronomy { namespace coordinate {
 
 namespace bu = boost::units;
@@ -80,7 +111,7 @@ public:
 template
 <
     typename CoordinateType = double,
-    typename XQuantity = RightAscension<CoordinateType,bu::quantity<bu::si::plane_angle, CoordinateType>>,
+    typename LatQuantity = RightAscension<CoordinateType,bu::quantity<bu::si::plane_angle, CoordinateType>>,
     typename DeclinationQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct equatorial_coord : public coord_sys
@@ -92,26 +123,28 @@ public:
 
     equatorial_coord
     (
-        XQuantity const &X,
+        LatQuantity const &Lat,
         DeclinationQuantity const &Declination
     )
     {
-        this->set_X_Declination(X, Declination);
+        this->set_lat_dec(Lat, Declination);
     }
 
-    std::tuple<XQuantity, DeclinationQuantity> get_X_Declination() const
+    std::tuple<LatQuantity, DeclinationQuantity> get_lat_dec() const
     {
-        return std::make_tuple(this->get_X(), this->get_Declination());
+        return std::make_tuple(this->get_lat(), this->get_dec());
     }
 
-    XQuantity get_X() const
+    // Get Latitude
+    LatQuantity get_lat() const
     {
-        XQuantity x = bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+        LatQuantity lat = bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
                 (bg::get<0>(this->point));
-        return x;
+        return lat;
     }
 
-    DeclinationQuantity get_Declination() const
+    // Get Declination
+    DeclinationQuantity get_dec() const
     {
         return static_cast<DeclinationQuantity>
             (
@@ -120,34 +153,34 @@ public:
             );
     }
 
-    //Set value of X and Declination
-    void set_X_Declination
+    //Set value of Latitude and Declination
+    void set_lat_dec
     (
-            XQuantity const &X,
-            DeclinationQuantity const &Declination
+        LatQuantity const &Lat,
+        DeclinationQuantity const &Dec
     )
     {
-        this->set_X(X);
-        this->set_Declination(Declination);
+        this->set_lat(Lat);
+        this->set_dec(Dec);
     }
 
-    //Set X
-    void set_X(XQuantity const &X)
+    //Set Latitude
+    void set_lat(LatQuantity const &Lat)
     {
         bg::set<0>
             (
-            this->point,
-            (X.get_angle()).value()
+                this->point,
+                (Lat.get_angle()).value()
             );
     }
 
     //Set Declination
-    void set_Declination(DeclinationQuantity const &Declination)
+    void set_dec(DeclinationQuantity const &Dec)
     {
         bg::set<1>
             (
-            this->point,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Declination).value()
+                this->point,
+                static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Dec).value()
             );
     }
 
@@ -157,7 +190,7 @@ public:
 template
 <
     typename CoordinateType,
-    template<typename CoordinateType_, typename Angle> class XQuantity,
+    template<typename CoordinateType_, typename Angle> class LatQuantity,
     template<typename Unit2, typename CoordinateType_> class DeclinationQuantity,
     typename Angle,
     typename Unit2
@@ -165,34 +198,34 @@ template
 equatorial_coord
 <
     CoordinateType,
-    XQuantity<CoordinateType, Angle>,
+    LatQuantity<CoordinateType, Angle>,
     DeclinationQuantity<Unit2, CoordinateType>
 > make_equatorial_coord
 (
-    XQuantity<CoordinateType, Angle> const &X,
-    DeclinationQuantity<Unit2, CoordinateType> const &Declination
+    LatQuantity<CoordinateType, Angle> const &Lat,
+    DeclinationQuantity<Unit2, CoordinateType> const &Dec
 )
 {
     return equatorial_coord
         <
             CoordinateType,
-            XQuantity<CoordinateType,Angle>,
+            LatQuantity<CoordinateType,Angle>,
             DeclinationQuantity<Unit2, CoordinateType>
-        > (X, Declination);
+        > (Lat, Dec);
 }
 
 //Print Equatorial Coordinates
 template
 <
     typename CoordinateType,
-    class XQuantity,
+    class LatQuantity,
     class DeclinationQuantity
 >
 std::ostream &operator<<(std::ostream &out, equatorial_coord
-        <CoordinateType, XQuantity, DeclinationQuantity> const &point) {
+        <CoordinateType, LatQuantity, DeclinationQuantity> const &point) {
     out << "Equatorial Coordinate (";
-    point.get_X().print();
-    out << " , Declination: " << point.get_Declination() << ")";
+    point.get_lat().print();
+    out << " , Declination: " << point.get_dec() << ")";
 
     return out;
 }

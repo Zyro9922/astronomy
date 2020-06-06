@@ -10,6 +10,21 @@
 #include <boost/units/physical_dimensions/plane_angle.hpp>
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
 
+/**
+ * The Horizon Coordinates, Altitude and Azimuth, of an object
+ * in the sky are referred to the plane of the observer’s horizon
+ *
+ * Azimuth
+ * THe Azimuth, is in the range of 0◦ to 360◦ and indicates how far an object
+ * in the sky is from the north as measured along an observer’s horizon.
+ *
+ * Altitude
+ * The Altitude, represented by the symbol h, and ranges from −90◦ to +90◦.
+ * Positive altitudes indicate objects above the horizon while negative
+ * altitudes indicate objects below the horizon.
+ *
+**/
+
 namespace boost { namespace astronomy { namespace coordinate {
 
 namespace bu = boost::units;
