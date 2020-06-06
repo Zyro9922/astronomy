@@ -1,8 +1,6 @@
-
 #define BOOST_TEST_MODULE equatorial_coord_test
 
 #include <iostream>
-#include <boost/units/io.hpp>
 #include <boost/units/quantity.hpp>
 #include <boost/units/systems/angle/degrees.hpp>
 #include <boost/units/systems/si/plane_angle.hpp>
@@ -10,9 +8,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-using namespace boost::astronomy::coordinate;
 using namespace boost::units;
 using namespace boost::units::si;
+using namespace boost::astronomy::coordinate;
+
 namespace bud = boost::units::degree;
 
 BOOST_AUTO_TEST_SUITE(angle)
