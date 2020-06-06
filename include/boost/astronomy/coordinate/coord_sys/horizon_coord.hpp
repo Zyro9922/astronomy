@@ -33,21 +33,21 @@ public:
 
     horizon_coord
     (
-            AltitudeQuantity const &Altitude,
-            AzimuthQuantity const &Azimuth
+        AltitudeQuantity const &Altitude,
+        AzimuthQuantity const &Azimuth
     )
     {
-        this->set_Altitude_Azimuth(Altitude, Azimuth);
+        this->set_altitude_azimuth(Altitude, Azimuth);
     }
 
     //Create tuple of Altitude and Azimuth
     std::tuple<AltitudeQuantity, AzimuthQuantity> get_altitude_azimuth() const
     {
-        return std::make_tuple(this->get_Altitude(), this->get_Azimuth());
+        return std::make_tuple(this->get_altitude(), this->get_azimuth());
     }
 
     //Get Altitude
-    AltitudeQuantity get_Altitude() const
+    AltitudeQuantity get_altitude() const
     {
         return static_cast<AltitudeQuantity>
             (
@@ -57,7 +57,7 @@ public:
     }
 
     //Get Azimuth
-    AzimuthQuantity get_Azimuth() const
+    AzimuthQuantity get_azimuth() const
     {
         return static_cast<AzimuthQuantity>
             (
@@ -67,33 +67,33 @@ public:
     }
 
     //Set value of Altitude and Azimuth
-    void set_Altitude_Azimuth
+    void set_altitude_azimuth
     (
         AltitudeQuantity const &Altitude,
         AzimuthQuantity const &Azimuth
     )
     {
-        this->set_Altitude(Altitude);
-        this->set_Azimuth(Azimuth);
+        this->set_altitude(Altitude);
+        this->set_azimuth(Azimuth);
     }
 
     //Set Altitude
-    void set_Altitude(AltitudeQuantity const &Altitude)
+    void set_altitude(AltitudeQuantity const &Altitude)
     {
         bg::set<0>
             (
-            this->point,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Altitude).value()
+                this->point,
+                static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Altitude).value()
             );
     }
 
     //Set Azimuth
-    void set_Azimuth(AzimuthQuantity const &Azimuth)
+    void set_azimuth(AzimuthQuantity const &Azimuth)
     {
         bg::set<1>
             (
-            this->point,
-            static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Azimuth).value()
+                this->point,
+                static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Azimuth).value()
             );
     }
 
@@ -137,8 +137,8 @@ template
 std::ostream &operator<<(std::ostream &out, horizon_coord
         <CoordinateType, AltitudeQuantity, AzimuthQuantity> const &point) {
     out << "Horizon Coordinate (Altitude: "
-        << point.get_Altitude() << " , Azimuth: "
-        << point.get_Azimuth() << ")";
+        << point.get_altitude() << " , Azimuth: "
+        << point.get_azimuth() << ")";
 
     return out;
 }
