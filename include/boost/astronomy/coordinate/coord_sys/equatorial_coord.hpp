@@ -45,6 +45,37 @@ public:
 //    }
 };
 
+//Hour Angle
+template
+<
+    typename CoordinateType = double,
+    typename HourAngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
+>
+struct HourAngle {
+private:
+    HourAngleQuantity _ha;
+public:
+    HourAngle(){
+        _ha = 0.0 * bu::si::radian;
+    }
+
+    HourAngle(HourAngleQuantity const& ha) : _ha(ha) {}
+
+    HourAngleQuantity get_angle() const{
+        return static_cast<HourAngleQuantity>(_ha);
+    }
+
+    void print() {
+        std::cout << "Hour Angle: " << _ha;
+    }
+
+//    TODO: Use SOFA to convert
+//    double convert_to_ra()
+//    {
+//
+//    }
+};
+
 }}}
 
 #endif //BOOST_ASTRONOMY_EQUATORIAL_COORD_HPP

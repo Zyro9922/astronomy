@@ -30,4 +30,16 @@ BOOST_AUTO_TEST_SUITE(angle)
         BOOST_TEST((std::is_same<decltype(ra.get_angle()), quantity<bud::plane_angle>>::value));
     }
 
+    BOOST_AUTO_TEST_CASE(hour_angle) {
+        //Create object of Hour Angle
+        HourAngle<double, quantity<bud::plane_angle>>
+                ha(25.0 * bud::degrees);
+
+        //Check value
+        BOOST_CHECK_CLOSE(ha.get_angle().value(), 25.0, 0.001);
+
+        //Quantity stored as expected?
+        BOOST_TEST((std::is_same<decltype(ha.get_angle()), quantity<bud::plane_angle>>::value));
+    }
+
 BOOST_AUTO_TEST_SUITE_END()
