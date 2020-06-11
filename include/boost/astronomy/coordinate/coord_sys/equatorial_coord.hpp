@@ -1,9 +1,8 @@
-
 /*=============================================================================
-  Copyright 2018-2020 Syed Ali Hasan < Zyro9922 - alihasan9922@gmail.com >
+Copyright 2020 Syed Ali Hasan <alihasan9922@gmail.com>
 
-  Distributed under the Boost Software License, Version 1.0. (See accompanying
-  file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+Distributed under the Boost Software License, Version 1.0. (See accompanying
+file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
 #ifndef BOOST_ASTRONOMY_EQUATORIAL_COORD_HPP
