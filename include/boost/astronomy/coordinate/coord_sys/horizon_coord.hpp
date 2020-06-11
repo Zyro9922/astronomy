@@ -37,7 +37,7 @@ template
     typename AzimuthQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct horizon_coord : public coord_sys
-    <2, bg::cs::spherical<bg::degree>, CoordinateType>
+    <2, bg::cs::spherical<bg::radian>, CoordinateType>
 {
 public:
     typedef AltitudeQuantity quantity1;

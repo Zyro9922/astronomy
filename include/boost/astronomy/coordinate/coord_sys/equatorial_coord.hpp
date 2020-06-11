@@ -129,7 +129,7 @@ template
     typename DeclinationQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct equatorial_coord : public coord_sys
-    <2, bg::cs::spherical<bg::degree>, CoordinateType>
+    <2, bg::cs::spherical<bg::radian>, CoordinateType>
 {
 public:
     //Default constructor
