@@ -1,9 +1,8 @@
-
 /*=============================================================================
-  Copyright 2018-2020 Pranam Lashkari < lpranam - plashkari628@gmail.com >
-  
-  Distributed under the Boost Software License, Version 1.0. (See accompanying
-  file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+Copyright 2019 Pranam Lashkari <plashkari628@gmail.com>
+
+Distributed under the Boost Software License, Version 1.0. (See accompanying
+file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
 #ifndef BOOST_ASTRONOMY_IO_TABLE_EXTENSION_HPP
@@ -26,7 +25,6 @@ namespace boost { namespace astronomy { namespace io {
 /**
  * @details The object of this structure stores header
  *          information and data of ASCII table extension or Binary Table Extension
- * @todo    Requires refactoring of duplicate code
 */
 struct table_extension : public extension_hdu
 {
@@ -50,8 +48,7 @@ public:
     */
     table_extension(std::fstream &file) : extension_hdu(file)
     {
-        tfields = this->value_of<std::size_t>("TFIELDS");
-        col_metadata.reserve(tfields);
+        set_table_extension_info();
     }
 
     /**
@@ -65,8 +62,7 @@ public:
     */
     table_extension(std::fstream &file, hdu const& other) : extension_hdu(file, other)
     {
-        tfields = this->value_of<std::size_t>("TFIELDS");
-        col_metadata.reserve(tfields);
+        set_table_extension_info();
     }
 
     /**
@@ -80,9 +76,14 @@ public:
    */
     table_extension(std::fstream &file, std::streampos pos) : extension_hdu(file, pos)
     {
+        set_table_extension_info();
+    }
+private:
+    void set_table_extension_info() {
         tfields = this->value_of<std::size_t>("TFIELDS");
         col_metadata.reserve(tfields);
     }
+    
 };
 
 }}} //namespace boost::astronomy::io
