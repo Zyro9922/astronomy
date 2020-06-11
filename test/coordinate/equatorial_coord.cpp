@@ -57,12 +57,6 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_default_right_ascension_constructor)
     RightAscension<double, quantity<si::plane_angle>>
             ra(25.0 * si::radian);
 
-    //Check value
-    BOOST_CHECK_CLOSE(ra.get_angle().value(), 25.0, 0.001);
-
-    //Quantity stored as expected?
-    BOOST_TEST((std::is_same<decltype(ra.get_angle()), quantity<si::plane_angle>>::value));
-
     //Check set_X_Declination
     e.set_lat_dec(ra,39.0 * bud::degree);
 
@@ -80,16 +74,9 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_default_hour_angle_constructor)
             quantity<bud::plane_angle>>
             e;
 
-
     //Create object of Right Ascension
     HourAngle<double, quantity<si::plane_angle>>
             ha(25.0 * si::radian);
-
-    //Check value
-    BOOST_CHECK_CLOSE(ha.get_angle().value(), 25.0, 0.001);
-
-    //Quantity stored as expected?
-    BOOST_TEST((std::is_same<decltype(ha.get_angle()), quantity<si::plane_angle>>::value));
 
     //Check set_X_Declination
     e.set_lat_dec(ha, 39.0 * bud::degree);
@@ -106,12 +93,6 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_quantities_right_ascension_constructor)
     //Create object of Right Ascension
     RightAscension<double, quantity<si::plane_angle>>
             ra(25.0 * si::radian);
-
-    //Check values
-    BOOST_CHECK_CLOSE(ra.get_angle().value(), 25.0, 0.001);
-
-    //Quantity stored as expected?
-    BOOST_TEST((std::is_same<decltype(ra.get_angle()), quantity<si::plane_angle>>::value));
 
     //Make Equatorial Coordinate Check
     auto e1 = make_equatorial_coord(ra, 6.0 * bud::degree);
@@ -142,12 +123,6 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_quantities_hour_angle_constructor)
     //Create object of Right Ascension
     HourAngle<double, quantity<si::plane_angle>>
             ha(25.0 * si::radian);
-
-    //Check values
-    BOOST_CHECK_CLOSE(ha.get_angle().value(), 25.0, 0.001);
-
-    //Quantity stored as expected?
-    BOOST_TEST((std::is_same<decltype(ha.get_angle()), quantity<si::plane_angle>>::value));
 
     //Make Equatorial Coordinate Check
     auto e1 = make_equatorial_coord(ha, 6.0 * bud::degree);
