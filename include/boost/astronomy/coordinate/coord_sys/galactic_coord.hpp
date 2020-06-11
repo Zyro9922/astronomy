@@ -159,10 +159,10 @@ template
     class LatQuantity,
     class LonQuantity
 >
-std::ostream &operator<<(std::ostream &out, galactic_coord
+std::ostream &operator << (std::ostream &out, galactic_coord
         <CoordinateType, LatQuantity, LonQuantity> const &point) {
     out << "Galactic Coordinate (Galactic Latitude: "
-        << point.get_lat() << " , Galactic Longitude: "
+        << point.get_lat() << ", Galactic Longitude: "
         << point.get_lon() << ")";
 
     return out;

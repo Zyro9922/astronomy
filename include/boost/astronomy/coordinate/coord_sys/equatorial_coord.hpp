@@ -65,16 +65,23 @@ public:
         return static_cast<RightAscensionQuantity>(_ra);
     }
 
-    void print() {
-        std::cout << "Right Ascension: " << _ra;
-    }
-
 //    TODO: Use SOFA to convert
 //    double convert_to_ha()
 //    {
 //
 //    }
 };
+
+// Left Shift ( << ) overload for Right Ascension
+template
+<
+    typename CoordinateType,
+    typename RightAscensionQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
+>
+std::ostream& operator << (std::ostream &out, RightAscension<CoordinateType, RightAscensionQuantity> const& ra)
+{
+    return out << "Right Ascension: " << ra.get_angle();
+}
 
 //Hour Angle
 template
@@ -96,16 +103,23 @@ public:
         return static_cast<HourAngleQuantity>(_ha);
     }
 
-    void print() {
-        std::cout << "Hour Angle: " << _ha;
-    }
-
 //    TODO: Use SOFA to convert
 //    double convert_to_ra()
 //    {
 //
 //    }
 };
+
+// Left Shift ( << ) overload for Hour Angle
+template
+<
+    typename CoordinateType,
+    typename HourAngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
+>
+std::ostream& operator << (std::ostream &out, HourAngle<CoordinateType, HourAngleQuantity> const& ha)
+{
+    return out << "Hour Angle: " << ha.get_angle();
+}
 
 //Equatorial Coordinate Struct
 template
@@ -223,9 +237,9 @@ template
 >
 std::ostream &operator<<(std::ostream &out, equatorial_coord
         <CoordinateType, LatQuantity, DeclinationQuantity> const &point) {
-    out << "Equatorial Coordinate (";
-    point.get_lat().print();
-    out << " , Declination: " << point.get_dec() << ")";
+    out << "Equatorial Coordinate ("
+    << point.get_lat()
+    << ", Declination: " << point.get_dec() << ")";
 
     return out;
 }

@@ -149,10 +149,10 @@ template
     class AltitudeQuantity,
     class AzimuthQuantity
 >
-std::ostream &operator<<(std::ostream &out, horizon_coord
+std::ostream &operator << (std::ostream &out, horizon_coord
         <CoordinateType, AltitudeQuantity, AzimuthQuantity> const &point) {
     out << "Horizon Coordinate (Altitude: "
-        << point.get_altitude() << " , Azimuth: "
+        << point.get_altitude() << ", Azimuth: "
         << point.get_azimuth() << ")";
 
     return out;

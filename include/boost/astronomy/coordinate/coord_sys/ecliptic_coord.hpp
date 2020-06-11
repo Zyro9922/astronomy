@@ -160,10 +160,10 @@ template
     class LatQuantity,
     class LonQuantity
 >
-std::ostream &operator<<(std::ostream &out, ecliptic_coord
+std::ostream &operator << (std::ostream &out, ecliptic_coord
         <CoordinateType, LatQuantity, LonQuantity> const &point) {
     out << "Ecliptic Coordinate (Ecliptic Latitude: "
-        << point.get_lat() << " , Ecliptic Longitude: "
+        << point.get_lat() << ", Ecliptic Longitude: "
         << point.get_lon() << ")";
 
     return out;
