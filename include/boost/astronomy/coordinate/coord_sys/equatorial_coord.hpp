@@ -132,7 +132,8 @@ std::ostream& operator << (std::ostream &out, HourAngle<CoordinateType, HourAngl
 template
 <
     typename CoordinateType = double,
-    typename LatQuantity = RightAscension<CoordinateType,bu::quantity<bu::si::plane_angle, CoordinateType>>,
+    typename AngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
+    typename LatQuantity = RightAscension<CoordinateType, AngleQuantity>,
     typename DeclinationQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct equatorial_coord : public coord_sys
@@ -159,8 +160,13 @@ public:
     // Get Latitude
     LatQuantity get_lat() const
     {
-        LatQuantity lat = bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                (bg::get<0>(this->point));
+        LatQuantity lat =
+            static_cast<AngleQuantity>
+            (
+                bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+                        (bg::get<0>(this->point))
+            );
+
         return lat;
     }
 
@@ -191,7 +197,7 @@ public:
         bg::set<0>
             (
                 this->point,
-                (Lat.get_angle()).value()
+                static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Lat.get_angle()).value()
             );
     }
 
@@ -211,26 +217,29 @@ public:
 template
 <
     typename CoordinateType,
-    template<typename CoordinateType_, typename Angle> class LatQuantity,
+    template<typename Unit1, typename CoordinateType_> class AngleQuantity,
+    template<typename CoordinateType_, typename AngleQuantity_> class LatQuantity,
     template<typename Unit2, typename CoordinateType_> class DeclinationQuantity,
-    typename Angle,
+    typename Unit1,
     typename Unit2
 >
 equatorial_coord
 <
     CoordinateType,
-    LatQuantity<CoordinateType, Angle>,
+    AngleQuantity<Unit1, CoordinateType>,
+    LatQuantity<CoordinateType, AngleQuantity<Unit1, CoordinateType>>,
     DeclinationQuantity<Unit2, CoordinateType>
 > make_equatorial_coord
 (
-    LatQuantity<CoordinateType, Angle> const &Lat,
+    LatQuantity<CoordinateType, AngleQuantity<Unit1, CoordinateType>> const &Lat,
     DeclinationQuantity<Unit2, CoordinateType> const &Dec
 )
 {
     return equatorial_coord
         <
             CoordinateType,
-            LatQuantity<CoordinateType,Angle>,
+            AngleQuantity<Unit1, CoordinateType>,
+            LatQuantity<CoordinateType,AngleQuantity<Unit1, CoordinateType>>,
             DeclinationQuantity<Unit2, CoordinateType>
         > (Lat, Dec);
 }
@@ -239,11 +248,12 @@ equatorial_coord
 template
 <
     typename CoordinateType,
+    class AngleQuantity,
     class LatQuantity,
     class DeclinationQuantity
 >
 std::ostream &operator<<(std::ostream &out, equatorial_coord
-        <CoordinateType, LatQuantity, DeclinationQuantity> const &point) {
+        <CoordinateType, AngleQuantity, LatQuantity, DeclinationQuantity> const &point) {
     out << "Equatorial Coordinate ("
     << point.get_lat()
     << ", Declination: " << point.get_dec() << ")";

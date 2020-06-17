@@ -56,6 +56,7 @@ BOOST_AUTO_TEST_SUITE(equatorial_coord_constructors)
 BOOST_AUTO_TEST_CASE(equatorial_coord_default_right_ascension_constructor)
 {
     equatorial_coord<double,
+            quantity<si::plane_angle>,
             RightAscension<double, quantity<si::plane_angle>>,
             quantity<bud::plane_angle>>
             e;
@@ -77,6 +78,7 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_default_right_ascension_constructor)
 BOOST_AUTO_TEST_CASE(equatorial_coord_default_hour_angle_constructor)
 {
     equatorial_coord<double,
+            quantity<si::plane_angle>,
             HourAngle<double, quantity<si::plane_angle>>,
             quantity<bud::plane_angle>>
             e;
@@ -113,7 +115,7 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_quantities_right_ascension_constructor)
     BOOST_TEST((std::is_same<decltype(e1.get_dec()), quantity<bud::plane_angle>>::value));
 
     //Equatorial Coordinate constructor
-    equatorial_coord<double, RightAscension<double, quantity<si::plane_angle>>, quantity<bud::plane_angle>>
+    equatorial_coord<double, quantity<si::plane_angle>, RightAscension<>, quantity<bud::plane_angle>>
             e2(ra, 9.0 * bud::degrees);
 
     //Check values
@@ -143,7 +145,7 @@ BOOST_AUTO_TEST_CASE(equatorial_coord_quantities_hour_angle_constructor)
     BOOST_TEST((std::is_same<decltype(e1.get_dec()), quantity<bud::plane_angle>>::value));
 
     //Equatorial Coordinate constructor
-    equatorial_coord<double, HourAngle<double, quantity<si::plane_angle>>, quantity<bud::plane_angle>>
+    equatorial_coord<double, quantity<si::plane_angle>, HourAngle<>, quantity<bud::plane_angle>>
             e2(ha, 9.0 * bud::degrees);
 
     //Check values
