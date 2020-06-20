@@ -10,6 +10,7 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 #include <string>
 #include <iostream>
+#include <exception>
 #include <boost/date_time/gregorian/gregorian.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/astronomy/time/parser.hpp>
@@ -74,6 +75,71 @@ DecimalHours GST(ptime t)
 
     //Return GST in decimal hours
     return DecimalHours(T0);
+}
+
+class BadDirection : public exception{
+public:
+    const char * what() const throw()
+    {
+        return "Bad Direction. Use East(E) or West(E).\n";
+    }
+};
+
+//Local Sidereal Time
+DecimalHours LST(double longitude, char dir, double GST)
+{
+    //GST in decimal only
+    int val = 0;
+
+    switch(dir)
+    {
+        case 'W':
+        case 'w':
+            val = -1;
+            break;
+        case 'E':
+        case 'e':
+            val = 1;
+            break;
+        default:
+            val = 0;
+    }
+    try {
+        if (val == 0)
+            throw BadDirection();
+        else
+        {
+            //Convert longitude to hours
+            double long_hours = longitude / 15.0;
+
+            //Multiply with direction
+            long_hours = val * long_hours;
+
+            long_hours = long_hours + GST;
+
+            while(long_hours < 0 || long_hours > 24)
+            {
+                if(long_hours < 0)
+                {
+                    double multiple = ceil(abs(long_hours)/24.0);
+                    long_hours = long_hours + 24.0 * multiple;
+                }
+
+                if(long_hours > 24)
+                {
+                    double multiple = ceil(abs(long_hours)/24.0);
+                    long_hours = long_hours - 24.0 * multiple;
+                }
+            }
+
+            return DecimalHours(long_hours);
+        }
+    }
+    catch(exception& e) {
+        std::cout << e.what();
+    }
+
+    return DecimalHours(0.0);
 }
 
 #endif //BOOST_ASTRONOMY_UT_TO_GST_HPP
