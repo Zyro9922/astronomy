@@ -34,20 +34,7 @@ DecimalHours GST(ptime t)
     double T0 = 6.697374558 + (2400.051336 * T) + (0.000025862 * T * T);
 
     //Reduce the result to the range 0 to 24 by adding or subtracting multiples of 24
-    while(T0 < 0 || T0 > 24)
-    {
-        if(T0 < 0)
-        {
-            double multiple = ceil(abs(T0)/24.0);
-            T0 = T0 + 24.0 * multiple;
-        }
-
-        if(T0 > 24)
-        {
-            double multiple = ceil(abs(T0)/24.0);
-            T0 = T0 - 24.0 * multiple;
-        }
-    }
+    T0 = T0 - 24.0 * floor(T0/24.0);
 
     //Convert UT to decimal hours
     double UT = ((t.time_of_day().seconds())/60.0 + t.time_of_day().minutes())/60.0 + t.time_of_day().hours();\
@@ -58,20 +45,7 @@ DecimalHours GST(ptime t)
     T0 += A;
 
     //Add this to T0 and reduce to the range 0 to 24 if necessary by subtracting or adding 24. This is the GST.
-    while(T0 < 0 || T0 > 24)
-    {
-        if(T0 < 0)
-        {
-            double multiple = ceil(abs(T0)/24.0);
-            T0 = T0 + 24.0 * multiple;
-        }
-
-        if(T0 > 24)
-        {
-            double multiple = ceil(abs(T0)/24.0);
-            T0 = T0 - 24.0 * multiple;
-        }
-    }
+    T0 = T0 - 24.0 * floor(T0/24.0);
 
     //Return GST in decimal hours
     return DecimalHours(T0);
@@ -81,7 +55,7 @@ class BadDirection : public exception{
 public:
     const char * what() const throw()
     {
-        return "Bad Direction. Use East(E) or West(E).\n";
+        return "Use East(E) or West(W).\n";
     }
 };
 
@@ -117,26 +91,15 @@ DecimalHours LST(double longitude, char dir, double GST)
 
             long_hours = long_hours + GST;
 
-            while(long_hours < 0 || long_hours > 24)
-            {
-                if(long_hours < 0)
-                {
-                    double multiple = ceil(abs(long_hours)/24.0);
-                    long_hours = long_hours + 24.0 * multiple;
-                }
-
-                if(long_hours > 24)
-                {
-                    double multiple = ceil(abs(long_hours)/24.0);
-                    long_hours = long_hours - 24.0 * multiple;
-                }
-            }
+            //Bring the result into the range 0 to 24 by adding or subtracting 24 if necessary.
+            //This is the local sidereal time (LST).
+            long_hours = long_hours - 24.0 * floor(long_hours/24.0);
 
             return DecimalHours(long_hours);
         }
     }
     catch(exception& e) {
-        std::cout << e.what();
+        std::cout << "Bad Direction: " << dir << ". " << e.what();
     }
 
     return DecimalHours(0.0);
