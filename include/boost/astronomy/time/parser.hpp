@@ -27,6 +27,10 @@ private:
 public:
     DecimalHours(double const& d) : dh(d) {}
 
+    double get() const{
+        return (double)dh;
+    }
+
     double get_hours() const{
         return (double)hours;
     }
