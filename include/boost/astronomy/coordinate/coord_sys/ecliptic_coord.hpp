@@ -11,6 +11,7 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <iostream>
 #include <boost/static_assert.hpp>
 #include <boost/geometry/core/cs.hpp>
+#include <boost/units/get_dimension.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/units/systems/si/plane_angle.hpp>
 #include <boost/units/systems/si/dimensionless.hpp>
@@ -57,6 +58,16 @@ template
 struct ecliptic_coord : public coord_sys
     <2, bg::cs::spherical<bg::radian>, CoordinateType>
 {
+  ///@cond INTERNAL
+  BOOST_STATIC_ASSERT_MSG(
+      ((std::is_same<typename bu::get_dimension<LatQuantity>::type,
+          bu::plane_angle_dimension>::value) &&
+       (std::is_same<typename bu::get_dimension<LonQuantity>::type,
+           bu::plane_angle_dimension>::value)),
+      "Latitude and Longitude must be of plane angle type");
+  BOOST_STATIC_ASSERT_MSG((std::is_floating_point<CoordinateType>::value),
+                          "CoordinateType must be a floating-point type");
+  ///@endcond
 public:
     typedef LatQuantity quantity1;
     typedef LonQuantity quantity2;

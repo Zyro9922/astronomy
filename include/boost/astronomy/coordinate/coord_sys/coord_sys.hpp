@@ -12,6 +12,7 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <type_traits>
 #include <boost/static_assert.hpp>
 #include <boost/geometry/core/cs.hpp>
+#include <boost/units/get_dimension.hpp>
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/geometry/algorithms/transform.hpp>
 
@@ -30,6 +31,12 @@ template
 >
 struct coord_sys
 {
+  ///@cond INTERNAL
+  BOOST_STATIC_ASSERT_MSG((DimensionCount == 2),
+                          "DimensionCount is expected to be 2");
+  BOOST_STATIC_ASSERT_MSG((std::is_arithmetic<CoordinateType>::value),
+                          "Coordinate Type must be an arithmetic type");
+  ///@endcond
 protected:
     bg::model::point<CoordinateType, DimensionCount, CoordinateSystem> point;
 
