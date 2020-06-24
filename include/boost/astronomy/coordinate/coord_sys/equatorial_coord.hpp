@@ -59,6 +59,14 @@ template
     typename RightAscensionQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct RightAscension {
+  ///@cond INTERNAL
+  BOOST_STATIC_ASSERT_MSG(
+      ((std::is_same<typename bu::get_dimension<RightAscensionQuantity>::type,
+          bu::plane_angle_dimension>::value)),
+      "Right Ascension must be of plane angle type");
+  BOOST_STATIC_ASSERT_MSG((std::is_floating_point<CoordinateType>::value),
+                          "CoordinateType must be a floating-point type");
+  ///@endcond
 private:
     RightAscensionQuantity _ra;
 public:
@@ -97,6 +105,14 @@ template
     typename HourAngleQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
 struct HourAngle {
+  ///@cond INTERNAL
+  BOOST_STATIC_ASSERT_MSG(
+      ((std::is_same<typename bu::get_dimension<HourAngleQuantity>::type,
+          bu::plane_angle_dimension>::value)),
+      "Hour Angle must be of plane angle type");
+  BOOST_STATIC_ASSERT_MSG((std::is_floating_point<CoordinateType>::value),
+                          "CoordinateType must be a floating-point type");
+  ///@endcond
 private:
     HourAngleQuantity _ha;
 public:
@@ -139,6 +155,16 @@ template
 struct equatorial_coord : public coord_sys
     <2, bg::cs::spherical<bg::radian>, CoordinateType>
 {
+  ///@cond INTERNAL
+  BOOST_STATIC_ASSERT_MSG(
+      ((std::is_same<typename bu::get_dimension<AngleQuantity>::type,
+          bu::plane_angle_dimension>::value) &&
+       (std::is_same<typename bu::get_dimension<DeclinationQuantity>::type,
+           bu::plane_angle_dimension>::value)),
+      "Angle and Declination must be of plane angle type");
+  BOOST_STATIC_ASSERT_MSG((std::is_floating_point<CoordinateType>::value),
+                          "CoordinateType must be a floating-point type");
+  ///@endcond
 public:
     //Default constructor
     equatorial_coord() {}
