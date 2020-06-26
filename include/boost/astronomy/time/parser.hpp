@@ -15,17 +15,26 @@ using namespace std;
 
 struct DecimalHours {
 private:
-    double dh;
+    double dh = 0;
 
-    double time = dh;
-    int hours = (int)time;
-    double minutesRemainder = (time - hours) * 60;
-    int minutes = (int)minutesRemainder;
-    double secondsRemainder = (minutesRemainder - minutes) * 60;
-    int seconds = (int)secondsRemainder;
+    double time = 0;
+    int hours = 0;
+    double minutesRemainder = 0;
+    int minutes = 0;
+    double secondsRemainder = 0;
+    int seconds = 0;
 
 public:
-    DecimalHours(double const& d) : dh(d) {}
+    DecimalHours(double const& d){
+      dh = d;
+
+      time = dh;
+      hours = (int)time;
+      minutesRemainder = (time - hours) * 60;
+      minutes = (int)minutesRemainder;
+      secondsRemainder = (minutesRemainder - minutes) * 60;
+      seconds = (int)secondsRemainder;
+    }
 
     double get() const{
         return (double)dh;
