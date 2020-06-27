@@ -84,7 +84,7 @@ struct ha_dec_hor
 
   matrix<ElementType> get()
   {
-    return vec;
+    return conv;
   }
 
 };
@@ -116,7 +116,7 @@ struct ha_dec_ra_dec
 
   matrix<ElementType> get()
   {
-    return vec;
+    return conv;
   }
 };
 
@@ -147,7 +147,7 @@ struct ecliptic_to_ra_dec
 
   matrix<ElementType> get()
   {
-    return vec;
+    return conv;
   }
 
 };
@@ -179,7 +179,7 @@ struct ra_dec_to_ecliptic
 
   matrix<ElementType> get()
   {
-    return vec;
+    return conv;
   }
 
 };
@@ -206,7 +206,7 @@ struct galactic_to_ra_dec
 
   matrix<ElementType> get()
   {
-    return vec;
+    return conv;
   }
 
 };
@@ -233,7 +233,7 @@ struct ra_dec_to_galactic
 
   matrix<ElementType> get()
   {
-    return vec;
+    return conv;
   }
 
 };
