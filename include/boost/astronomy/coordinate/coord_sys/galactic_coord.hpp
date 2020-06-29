@@ -21,7 +21,7 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 /**
  * To describe the relationships between stars or other celestial
  * objects within our own Galaxy is convenient to use the Galactic
- * Coordinate System
+ * Coordinate System.
  *
  * The center of our Milky Way is chosen to be the coordinate system’s
  * origin. The equatorial coordinates for the center of the Milky Way
