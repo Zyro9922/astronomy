@@ -14,7 +14,18 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <boost/geometry/geometries/point.hpp>
 #include <boost/units/systems/angle/degrees.hpp>
 #include <boost/units/systems/si/plane_angle.hpp>
+
+//Coordinate System
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
+#include <boost/astronomy/coordinate/coord_sys/horizon_coord.hpp>
+#include <boost/astronomy/coordinate/coord_sys/ecliptic_coord.hpp>
+#include <boost/astronomy/coordinate/coord_sys/galactic_coord.hpp>
+
+//Matrix
+#include <boost/astronomy/coordinate/conversion/matrix_utilities.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <cmath>
 
 /**
  * The Equatorial Coordinates, are referred to the plane of the Earth’s equator
@@ -51,6 +62,7 @@ namespace boost { namespace astronomy { namespace coordinate {
 
 namespace bu = boost::units;
 namespace bg = boost::geometry;
+namespace bud = bu::degree;
 
 //Right Ascension
 template
@@ -235,6 +247,39 @@ public:
                 this->point,
                 static_cast<bu::quantity<bu::si::plane_angle, CoordinateType>>(Dec).value()
             );
+    }
+
+    coord_sys<2, bg::cs::spherical<bg::radian>, CoordinateType> convert_to(const std::string& cs)
+    {
+      if(cs == "Horizon")
+      {
+        horizon_coord<
+            double,
+            bu::quantity<bud::plane_angle>,
+            bu::quantity<bud::plane_angle>>
+            hc;
+
+        //First create column vector from given Equatorial Coordinates
+        double latitude = static_cast<bu::quantity<bud::plane_angle>>(
+                                bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+                                (bg::get<0>(this->point))).value();
+
+        double longitude = static_cast<bu::quantity<bud::plane_angle>>(
+            bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
+                (bg::get<1>(this->point))).value();
+
+        matrix<double> column_vector = col_vec<double>(latitude, longitude).get();
+
+        std::cout << column_vector;
+
+      }
+
+
+//      //Check set_altitude_azimuth
+//      hc.set_altitude_azimuth(45.0 * bud::degrees, 18.0 * bud::degrees);
+//
+//      std::cout << cs <<": " << hc << std::endl;
+//      return hc;
     }
 
 }; //equatorial_coord
