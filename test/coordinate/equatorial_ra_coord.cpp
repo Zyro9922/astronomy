@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE(equatorial_ra_coord_default_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(equatorial_ra_coord_quantities_constructor) {
-    //Make Galactic Coordinate Check
+    //Make Equatorial Coordinate Check
     auto era1 = make_equatorial_ra_coord
             (15.0 * bud::degrees, 39.0 * bud::degrees);
     BOOST_CHECK_CLOSE(era1.get_ra().value(), 15.0, 0.001);
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(equatorial_ra_coord_quantities_constructor) {
     BOOST_TEST((std::is_same<decltype(era1.get_ra()), quantity<bud::plane_angle>>::value));
     BOOST_TEST((std::is_same<decltype(era1.get_dec()), quantity<bud::plane_angle>>::value));
 
-    //Galactic Coordinate constructor
+    //Equatorial Coordinate constructor
     equatorial_ra_coord<double, quantity<bud::plane_angle>, quantity<bud::plane_angle>>
             era2(1.5 * bud::degrees, 9.0 * bud::degrees);
     BOOST_CHECK_CLOSE(era2.get_ra().value(), 1.5, 0.001);
