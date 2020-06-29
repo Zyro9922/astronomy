@@ -28,7 +28,7 @@ template
     typename CoordinateType = double,
     typename RightAscensionQuantity = bu::quantity<bu::si::plane_angle, CoordinateType>,
     typename Declination = bu::quantity<bu::si::plane_angle, CoordinateType>
-    >
+>
 struct equatorial_ra_coord : public coord_sys
 	<2, bg::cs::spherical<bg::radian>, CoordinateType>
 {

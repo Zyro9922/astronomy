@@ -4,6 +4,7 @@ foreach(_name
         ecliptic_coord
         equatorial_coord
         equatorial_ra_coord
+        equatorial_ha_coord
         cartesian_representation
         cartesian_differential
         spherical_representation
