@@ -169,13 +169,13 @@ class Graph {
     return false;
   }
 
-  void convert(T src, T dest, matrix<double> &col_vec)
+  matrix<double> convert(T src, T dest, matrix<double> col_vec)
   {
     map<T, T> pred;
 
     if (!sssp2(src, dest, pred)) {
       std::cout << "Given source and destination are not connected";
-      return;
+      return identity_matrix<double>(3);
     }
 
     std::vector<T> path;
@@ -188,23 +188,25 @@ class Graph {
     }
 
     path.push_back(src);
+
+    int n = path.size();
     // printing path from source to destination
-    cout << "\nPath is::\n";
-    for (int i = path.size() - 1; i >= 0; i--)
-      cout << path[i] << ", ";
+    cout << "\nConversion path: ";
+    cout << path[n - 1];
+    for (int i = n - 2; i >= 0; i--)
+      cout << " -> " << path[i];
 
     matrix<double> ans = col_vec;
 
     std::cout << "\n";
 
-    int n = path.size();
     // matrix
-    for (int i = 0; i < n - 1; i++)
+    for (int i = n - 1; i > 0; i--)
     {
-      ans = prod(getEdge(path[i], path[i+1]), ans);
+      ans = prod(getEdge(path[i], path[i-1]), ans);
     }
 
-    std::cout << std::endl << ans << std::endl;
+    return ans;
   }
 };
 
