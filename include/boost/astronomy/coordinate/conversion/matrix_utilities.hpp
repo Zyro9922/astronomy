@@ -31,7 +31,7 @@ namespace boost { namespace astronomy { namespace coordinate {
 ////ε is the obliquity of the ecliptic.
 
 template
-<typename ElementType = double>
+    <typename ElementType = double>
 struct col_vec
 {
  private:
@@ -65,7 +65,7 @@ struct col_vec
 };
 
 template
-<typename ElementType = double>
+    <typename ElementType = double>
 struct ha_dec_hor
 {
  private:
@@ -78,7 +78,7 @@ struct ha_dec_hor
 
   ha_dec_hor(ElementType phi)
   {
-    _phi = phi;
+    _phi = phi * M_PI/180;
 
     conv(0,0) = -std::sin(_phi);
     conv(0,1) = 0;
@@ -86,7 +86,7 @@ struct ha_dec_hor
     conv(1,0) = 0;
     conv(1,1) = -1;
     conv(1,2) = 0;
-    conv(2,0) = -std::cos(_phi);
+    conv(2,0) = std::cos(_phi);
     conv(2,1) = 0;
     conv(2,2) = std::sin(_phi);
   }
@@ -104,7 +104,7 @@ struct ha_dec_hor
 };
 
 template
-<typename ElementType = double>
+    <typename ElementType = double>
 struct ha_dec_ra_dec
 {
  private:
@@ -117,7 +117,7 @@ struct ha_dec_ra_dec
 
   ha_dec_ra_dec(ElementType ST)
   {
-    _ST = ST;
+    _ST = ST * M_PI/180;
 
     conv(0,0) = std::cos(_ST);
     conv(0,1) = std::sin(_ST);
@@ -155,16 +155,16 @@ struct ecliptic_to_ra_dec
 
   ecliptic_to_ra_dec(ElementType obliquity)
   {
-    _obliquity = obliquity;
+    _obliquity = obliquity * M_PI/180;
 
     conv(0,0) = 1;
     conv(0,1) = 0;
     conv(0,2) = 0;
     conv(1,0) = 0;
     conv(1,1) = std::cos(_obliquity);
-    conv(1,2) = std::sin(_obliquity);
+    conv(1,2) = -std::sin(_obliquity);
     conv(2,0) = 0;
-    conv(2,1) = -std::sin(_obliquity);
+    conv(2,1) = std::sin(_obliquity);
     conv(2,2) = std::cos(_obliquity);
   }
 
@@ -194,7 +194,7 @@ struct ra_dec_to_ecliptic
 
   ra_dec_to_ecliptic(ElementType obliquity)
   {
-    _obliquity = obliquity;
+    _obliquity = obliquity * M_PI/180;
 
     conv(0,0) = 1;
     conv(0,1) = 0;
@@ -252,7 +252,7 @@ struct galactic_to_ra_dec
 };
 
 template
-<typename ElementType = double>
+    <typename ElementType = double>
 struct ra_dec_to_galactic
 {
  public:
