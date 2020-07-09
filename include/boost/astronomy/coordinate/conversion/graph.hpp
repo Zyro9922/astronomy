@@ -46,6 +46,17 @@ class Graph {
     adjList[u].push_back(make_pair(v,m));
   }
 
+  matrix<double> getEdge(T u, T v)
+  {
+    for (const auto& p : adjList[u])
+    {
+      if(p.first == v)
+        return p.second;
+    }
+
+    return identity_matrix<double>(3);
+  }
+
   void printAdjList()
   {
     for (const auto& p : adjList)
@@ -116,6 +127,9 @@ class Graph {
           visited[i.first] = true;
           distance[i.first] = distance[node] + 1;
           cout << "Distance of " << i.first << " from source " << src << " is " << distance[i.first] << endl;
+
+          if(i.first == dest)
+            break;
         }
       }
     }
@@ -123,7 +137,7 @@ class Graph {
     return distance[dest];
   }
 
-  matrix<double> convert(T src, T dest, const matrix<double>& col_vec)
+  bool sssp2(T src, T dest, map<T, T> &pred)
   {
     map<T, bool> visited;
     map<T, int> distance;
@@ -134,9 +148,7 @@ class Graph {
     visited[src] = true;
     distance[src] = 0;
 
-    matrix<double> ans;
-
-    while (q.front() != dest)
+    while (!q.empty())
     {
       T node = q.front();
       q.pop();
@@ -148,18 +160,51 @@ class Graph {
           q.push(i.first);
           visited[i.first] = true;
           distance[i.first] = distance[node] + 1;
-
-          ans = prod(i.second, col_vec);
-
-          std::cout << i.second << std::endl;
-
+          pred[i.first] = node;
           if(i.first == dest)
-            break;
+            return true;
         }
       }
     }
+    return false;
+  }
 
-    return ans;
+  void convert(T src, T dest, matrix<double> &col_vec)
+  {
+    map<T, T> pred;
+
+    if (!sssp2(src, dest, pred)) {
+      std::cout << "Given source and destination are not connected";
+      return;
+    }
+
+    std::vector<T> path;
+    T crawl = dest;
+    path.push_back(crawl);
+
+    while(pred[crawl] != src){
+      path.push_back(pred[crawl]);
+      crawl = pred[crawl];
+    }
+
+    path.push_back(src);
+    // printing path from source to destination
+    cout << "\nPath is::\n";
+    for (int i = path.size() - 1; i >= 0; i--)
+      cout << path[i] << ", ";
+
+    matrix<double> ans = col_vec;
+
+    std::cout << "\n";
+
+    int n = path.size();
+    // matrix
+    for (int i = 0; i < n - 1; i++)
+    {
+      ans = prod(getEdge(path[i], path[i+1]), ans);
+    }
+
+    std::cout << std::endl << ans << std::endl;
   }
 };
 
