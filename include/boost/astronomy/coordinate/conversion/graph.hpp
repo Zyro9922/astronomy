@@ -169,7 +169,7 @@ class Graph {
     return false;
   }
 
-  matrix<double> convert(T src, T dest, matrix<double> col_vec)
+  matrix<double> convert(T src, T dest, const matrix<double> col_vec)
   {
     map<T, T> pred;
 
