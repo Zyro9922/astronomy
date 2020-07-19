@@ -9,11 +9,12 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #define BOOST_ASTRONOMY_MATRIX_UTILITIES_HPP
 
 #include <iostream>
+#include <cmath>
+
 #include <boost/astronomy/coordinate/coord_sys/coord_sys.hpp>
 
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
-#include <cmath>
 
 using namespace std;
 using namespace boost::numeric::ublas;
@@ -26,9 +27,9 @@ namespace boost { namespace astronomy { namespace coordinate {
  * degrees = radians * (180/Math.PI);
  */
 
-////Phi φ is the geographical latitude
-////ST is the local sidereal time
-////ε is the obliquity of the ecliptic.
+//Phi φ is the geographical latitude
+//ST is the local sidereal time
+//ε is the obliquity of the ecliptic.
 
 template
 <typename ElementType = double>
@@ -282,72 +283,6 @@ struct ra_dec_to_galactic
   }
 
 };
-
-
-//template
-//<typename ElementType = double>
-//matrix<ElementType> column_vector()
-//{
-//  /**
-//   * Let (μ,ν) represent any pair, e.g. Horizon(A,a) or Galactic(l,b), etc.
-//   */
-//
-//  double u = 97.638119 * M_PI/180;
-//  double v = -17.857969 * M_PI/180;
-//
-//  matrix<ElementType> col_vec = matrix<ElementType>(3, 1);
-//
-//  col_vec(0,0) = std::cos(u) * std::cos(v);
-//  col_vec(1,0) = std::sin(u) * std::cos(v);
-//  col_vec(2,0) = std::sin(v);
-//
-//  return col_vec;
-//}
-
-//template
-//<typename ElementType = double>
-//void HA_DEC_to_Hor()
-//  {
-//    //Column Vector
-//
-//    //Degree to radian
-//    double u = 97.638119 * M_PI/180;
-//    double v = -17.857969 * M_PI/180;
-//
-//    matrix<ElementType> col_vec = matrix<ElementType>(3, 1);
-//
-//    col_vec(0,0) = std::cos(u) * std::cos(v);
-//    col_vec(1,0) = std::sin(u) * std::cos(v);
-//    col_vec(2,0) = std::sin(v);
-//
-//    //********************
-//
-//    matrix<ElementType> conv = matrix<ElementType>(3, 3);
-//
-//    //Phi φ is the geographical latitude
-//    //ST is the local sidereal time
-//    //ε is the obliquity of the ecliptic.
-//
-//    double phi = 52.17528 * M_PI/180;
-//
-//    conv(0,0) = -std::sin(phi);
-//    conv(0,1) = 0;
-//    conv(0,2) = std::cos(phi);
-//    conv(1,0) = 0;
-//    conv(1,1) = -1;
-//    conv(1,2) = 0;
-//    conv(2,0) = -std::cos(phi);
-//    conv(2,1) = 0;
-//    conv(2,2) = std::sin(phi);
-//
-//    std::cout << conv << std::endl;
-//
-//    matrix<ElementType> ans = prod(conv,col_vec);
-//
-//    std::cout << ans << std::endl;
-//
-//  }
-
 }}}
 
 #endif  // BOOST_ASTRONOMY_MATRIX_UTILITIES_HPP
