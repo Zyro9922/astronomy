@@ -283,6 +283,32 @@ struct ra_dec_to_galactic
   }
 
 };
+
+//template
+//<typename ElementType = double>
+struct extract_coordinates{
+ private:
+  double theta = 0;
+  double phi = 0;
+
+ public:
+  extract_coordinates(){}
+
+  extract_coordinates(matrix<double> col_vec)
+  {
+    double m = col_vec(0,0);
+    double n = col_vec(1,0);
+    double p = col_vec(2,0);
+
+    theta = atan2(n,m) * (180/M_PI);
+    phi = asin(p) * (180/M_PI);
+  }
+
+  void get_coordinates()
+  {
+    std::cout << "Theta: " << theta << " Phi: " << phi << endl;
+  }
+};
 }}}
 
 #endif  // BOOST_ASTRONOMY_MATRIX_UTILITIES_HPP
