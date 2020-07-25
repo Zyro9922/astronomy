@@ -25,7 +25,16 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <boost/astronomy/time/time_conversions.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+//Angle
+#include <boost/units/quantity.hpp>
+#include <boost/units/systems/si/plane_angle.hpp>
+#include <boost/units/systems/si/dimensionless.hpp>
+#include <boost/units/physical_dimensions/plane_angle.hpp>
+#include <boost/units/systems/angle/degrees.hpp>
+
 namespace bac = boost::astronomy::coordinate;
+namespace bu = boost::units;
+namespace bud = boost::units::degree;
 
 template<typename T>
 class Graph {
@@ -217,22 +226,32 @@ matrix<double> convert(T src, T dest, const matrix<double> col_vec)
 
 Graph<string> g;
 
-void init_graph(double phi, double st, double obliquity)
+template
+<
+  typename CoordinateType = double,
+  typename Angle = bu::quantity<bu::si::plane_angle, CoordinateType>
+>
+void init_graph(Angle phi, Angle st, Angle obliquity)
 {
+  //Radian
+  double _phi = static_cast<bu::quantity<bu::si::plane_angle>>(phi).value();
+  double _st = static_cast<bu::quantity<bu::si::plane_angle>>(st).value();
+  double _obliquity = static_cast<bu::quantity<bu::si::plane_angle>>(obliquity).value();
+
   g.add_edge("Equatorial HA Dec", "Horizon",
-             bac::ha_dec_hor<double>(phi).get());
+             bac::ha_dec_hor<double>(_phi).get());
   g.add_edge("Horizon", "Equatorial HA Dec",
-             bac::ha_dec_hor<double>(phi).get());
+             bac::ha_dec_hor<double>(_phi).get());
 
   g.add_edge("Equatorial HA Dec", "Equatorial RA Dec",
-             bac::ha_dec_ra_dec<double>(st).get());
+             bac::ha_dec_ra_dec<double>(_st).get());
   g.add_edge("Equatorial RA Dec", "Equatorial HA Dec",
-             bac::ha_dec_ra_dec<double>(st).get());
+             bac::ha_dec_ra_dec<double>(_st).get());
 
   g.add_edge("Equatorial RA Dec", "Ecliptic",
-             bac::ra_dec_to_ecliptic<double>(obliquity).get());
+             bac::ra_dec_to_ecliptic<double>(_obliquity).get());
   g.add_edge("Ecliptic", "Equatorial RA Dec",
-             bac::ecliptic_to_ra_dec<double>(obliquity).get());
+             bac::ecliptic_to_ra_dec<double>(_obliquity).get());
 
   g.add_edge("Equatorial RA Dec", "Galactic",
              bac::ra_dec_to_galactic<double>().get());

@@ -249,38 +249,6 @@ public:
             );
     }
 
-    coord_sys<2, bg::cs::spherical<bg::radian>, CoordinateType> convert_to(const std::string& cs)
-    {
-      if(cs == "Horizon")
-      {
-        horizon_coord<
-            double,
-            bu::quantity<bud::plane_angle>,
-            bu::quantity<bud::plane_angle>>
-            hc;
-
-        //First create column vector from given Equatorial Coordinates
-        double latitude = static_cast<bu::quantity<bud::plane_angle>>(
-                                bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                                (bg::get<0>(this->point))).value();
-
-        double longitude = static_cast<bu::quantity<bud::plane_angle>>(
-            bu::quantity<bu::si::plane_angle, CoordinateType>::from_value
-                (bg::get<1>(this->point))).value();
-
-        matrix<double> column_vector = col_vec<double>(latitude, longitude).get();
-
-        std::cout << column_vector;
-
-      }
-
-
-//      //Check set_altitude_azimuth
-//      hc.set_altitude_azimuth(45.0 * bud::degrees, 18.0 * bud::degrees);
-//
-//      std::cout << cs <<": " << hc << std::endl;
-//      return hc;
-    }
 
 }; //equatorial_coord
 
