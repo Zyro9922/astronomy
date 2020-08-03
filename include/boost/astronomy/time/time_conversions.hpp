@@ -75,6 +75,9 @@ public:
 //Local Sidereal Time (LST)
 DecimalHours LST(double longitude, char dir, double GST)
 {
+    if(longitude == 0)
+      return {GST};
+
     //GST in decimal only
     int val = 0;
 
