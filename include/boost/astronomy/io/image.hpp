@@ -9,8 +9,6 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #define BOOST_ASTRONOMY_IO_IMAGE_HPP
 
 
-#include <valarray>
-#include <fstream>
 #include <cstddef>
 #include <algorithm>
 #include <iterator>
@@ -18,9 +16,11 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <string>
 #include <cmath>
 #include <numeric>
+#include <valarray>
 
 #include <boost/endian/conversion.hpp>
 #include <boost/cstdfloat.hpp>
+#include <boost/variant.hpp>
 
 #include <boost/astronomy/io/bitpix.hpp>
 
@@ -40,9 +40,9 @@ template <typename PixelType>
 struct image_buffer
 {
 protected:
-    std::valarray<PixelType> data; //! stores the image
-    std::size_t width; //! width of image
-    std::size_t height; //! height of image
+    std::valarray<PixelType> data_; //! stores the image
+    std::size_t width_; //! width of image
+    std::size_t height_; //! height of image
     //std::fstream image_file; //! image file
 
     /**
@@ -66,9 +66,9 @@ public:
      * @param[in]   width Width of Image
      * @param[in]   height  Height of Image
     */
-    image_buffer(std::size_t width, std::size_t height) : width(width), height(height)
+    image_buffer(std::size_t width, std::size_t height) : width_(width), height_(height)
     {
-        this->data.resize(width*height);
+        this->data_.resize(width*height);
     }
 
     /**
@@ -82,7 +82,7 @@ public:
     */
     PixelType max() const
     {
-        return this->data.max();
+        return this->data_.max();
     }
 
     /**
@@ -91,7 +91,7 @@ public:
     */
     PixelType min() const
     {
-        return this->data.min();
+        return this->data_.min();
     }
 
 
@@ -101,13 +101,13 @@ public:
     */
     double mean() const
     {
-        if (this->data.size() == 0)
+        if (this->data_.size() == 0)
         {
             return 0;
         }
 
-        return (std::accumulate(std::begin(this->data),
-            std::end(this->data), 0.0) / this->data.size());
+        return (std::accumulate(std::begin(this->data_),
+            std::end(this->data_), 0.0) / this->data_.size());
     }
 
     /**
@@ -117,11 +117,11 @@ public:
     */
     PixelType median() const
     {
-        std::valarray<PixelType> soreted_array = this->data;
-        std::nth_element(std::begin(soreted_array),
-            std::begin(soreted_array) + soreted_array.size() / 2, std::end(soreted_array));
+        std::valarray<PixelType> sorted_array = this->data_;
+        std::nth_element(std::begin(sorted_array),
+            std::begin(sorted_array) + sorted_array.size() / 2, std::end(sorted_array));
 
-        return soreted_array[soreted_array.size() / 2];
+        return sorted_array[sorted_array.size() / 2];
     }
 
    /**
@@ -131,17 +131,17 @@ public:
     */
     double std_dev() const
     {
-        if (this->data.size() == 0)
+        if (this->data_.size() == 0)
         {
             return 0;
         }
 
         double avg = this->mean();
 
-        std::valarray<double> diff(this->data.size());
+        std::valarray<double> diff(this->data_.size());
         for (size_t i = 0; i < diff.size(); i++)
         {
-            diff[i] = this->data[i] - avg;
+            diff[i] = this->data_[i] - avg;
         }
 
         diff *= diff;
@@ -155,793 +155,64 @@ public:
     */
     PixelType operator() (std::size_t x, std::size_t y)
     {
-        return this->data[(x*this->width) + y];
+        return this->data_[(x*this->width_) + y];
     }
+
+    /**
+     * @brief       Returns the size of image
+    */
+    std::size_t size() { return data_.size(); }
 };
 
+
+
+
+struct read_image_visitor :public boost::static_visitor<> {
+
+    const std::string& data_buffer;
+
+    read_image_visitor(const std::string& data_buf) :data_buffer(data_buf) {}
+
+    template<typename Image_Type>
+    void operator()(Image_Type& type) { type.read_image(data_buffer); }
+};
 
 /**
  * @brief   Stores image data associated with the perticular HDU
  * @tparam  args Specifies the number of bits that represents a data value in image.
- * @author  Pranam Lashkari
+ * @author  Pranam Lashkari, Gopi Krishna Menon
  * @see     image_buffer
 */
-template<bitpix args>
-struct image {};
+template<bitpix bitpix_val>
+struct image:public image_buffer<typename bitpix_type<bitpix_val>::underlying_type> {
 
-
-/**
- * @brief   Image specialization for 8 bit data value
-*/
-template <>
-struct image<bitpix::B8> : public image_buffer<std::uint8_t>
-{
 public:
     /**
-     * @brief   Default constructor used to create a standalone object of image
+     * @brief Reads an image from the data buffer
+     * @param[in] data_buffer Data associated with image HDU or primary HDU
     */
-    image() {}
+    void read_image(const std::string& data_buffer) {
 
-    /**
-     * @brief       Constructs an image object from the file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::string const& file, std::size_t width, std::size_t height, std::streamoff start) :
-        image_buffer<std::uint8_t>(width, height)
-    {
-        std::fstream image_file(file);
-        image_file.seekg(start);
-        read_image_logic(image_file);
-        image_file.close();
-    }
+        if (data_buffer.empty()) { return; }
 
-    /**
-     * @brief       Constructs an image object from the given file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from given file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::string const& file, std::size_t width, std::size_t height) :
-        image_buffer<std::uint8_t>(width, height)
-    {
-        std::fstream image_file(file);
-        read_image_logic(image_file);
-        image_file.close();
-    }
+        auto element_size = get_element_size_from_bitpix(bitpix_val);
+        std::string::const_iterator raw_data_iter=data_buffer.begin();
 
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        read_image(file, width, height, start);
-    }
-
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from  filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height);
-    }
-
-    /**
-     * @brief       Reads the 8bit image data from the given filestream
-     * @param[in,out] file filestream set to open mode for reading
-    */
-    void read_image_logic(std::fstream &image_file)
-    {
-        image_file.read((char*)std::begin(data), width*height);
-        //std::copy_n(std::istreambuf_iterator<char>(file.rdbuf()), width*height, std::begin(data));
-    }
-
-    /**
-     * @brief       Reads the image data from given file
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    void read_image
-    (
-        std::string const& file,
-        std::size_t width,
-        std::size_t height,
-        std::streamoff start
-    )
-    {
-        std::fstream image_file(file);
-        data.resize(width*height);
-        image_file.seekg(start);
-
-        read_image_logic(image_file);
-
-        image_file.close();
-    }
-
-    /**
-     * @brief       Reads the image data from given file
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::string const& file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, 0);
-    }
+        this->data_.resize(data_buffer.size() / element_size);
 
 
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        data.resize(width*height);
-        file.seekg(start);
-
-        read_image_logic(file);
-    }
-
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from current position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, file.tellg());
-    }
-};
-
-/**
- * @brief   Image specialization for 16 bit data value
-*/
-template <>
-struct image<bitpix::B16> : public image_buffer<std::int16_t>
-{
-public:
-    /**
-     * @brief   Default constructor used to create a standalone object of image
-    */
-    image() {}
-
-    /**
-     * @brief       Constructs an image object from the file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::string const& file, std::size_t width, std::size_t height, std::streamoff start) :
-        image_buffer<std::int16_t>(width, height)
-    {
-        std::fstream image_file(file);
-        image_file.seekg(start);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-
-    /**
-     * @brief       Constructs an image object from the given file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from given file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::string const& file, std::size_t width, std::size_t height) :
-        image_buffer<std::int16_t>(width, height)
-    {
-        std::fstream image_file(file);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        read_image(file, width, height, start);
-    }
-
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from  filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height);
-    }
-
-    /**
-     * @brief       Reads the 8bit image data from the given filestream
-     * @param[in,out] file filestream set to open mode for reading
-    */
-    void read_image_logic(std::fstream &image_file)
-    {
-        for (std::size_t i = 0; i < height*width; i++)
-        {
-            image_file.read((char*)&data[i], 2);
-            data[i] = boost::endian::big_to_native(data[i]);
+        for (auto& element : this->data_) {
+            std::string data(raw_data_iter, raw_data_iter + element_size);
+            //Boost allows only endian  conversion with integral types
+            // This is a workaround ( Largest integral type for storing all other types data temporarily)
+            boost::int64_t temp_holder = 0;
+            std::memcpy(&temp_holder, data.c_str(), element_size);
+            temp_holder = boost::endian::big_to_native(temp_holder);
+            std::memcpy(&element, &temp_holder, element_size);
+            raw_data_iter += element_size;
         }
     }
-
-    /**
-     * @brief       Reads the image data from given file
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    void read_image
-    (
-        std::string const& file,
-        std::size_t width,
-        std::size_t height,
-        std::streamoff start
-    )
-    {
-        std::fstream image_file(file);
-        image_file.open(file);
-        data.resize(width*height);
-        image_file.seekg(start);
-
-        read_image_logic(image_file);
-
-        image_file.close();
-    }
-    /**
-     * @brief       Reads the image data from given file
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::string const& file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, 0);
-    }
-
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        data.resize(width*height);
-        file.seekg(start);
-
-        read_image_logic(file);
-    }
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from current position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, file.tellg());
-    }
 };
-
-
-/**
- * @brief   Image specialization for 32 bit data value
-*/
-template <>
-struct image<bitpix::B32> : public image_buffer<std::int32_t>
-{
-public:
-    /**
-     * @brief   Default constructor used to create a standalone object of image
-    */
-    image() {}
-
-    /**
-     * @brief       Constructs an image object from the file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::string const& file, std::size_t width, std::size_t height, std::streamoff start) :
-        image_buffer<std::int32_t>(width, height)
-    {
-        std::fstream image_file(file);
-        image_file.seekg(start);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-
-    /**
-     * @brief       Constructs an image object from the given file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from given file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::string const& file, std::size_t width, std::size_t height) :
-        image_buffer<std::int32_t>(width, height)
-    {
-        std::fstream image_file(file);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-    /**
-    * @brief       Constructs an image object from the given filestream
-    * @details     This constructor reserves width*height space for image buffer
-    *              and reads the image data from specific position in filestream
-    * @param[in,out] file filestream set to open mode for reading
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-    * @param[in]   start Starting position of image data
-   */
-    image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        read_image(file, width, height, start);
-    }
-
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from  filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height);
-    }
-
-    /**
-     * @brief       Reads the 8bit image data from the given filestream
-     * @param[in,out] file filestream set to open mode for reading
-    */
-    void read_image_logic(std::fstream &image_file)
-    {
-        for (std::size_t i = 0; i < height*width; i++)
-        {
-            image_file.read((char*)&data[i], 4);
-            data[i] = boost::endian::big_to_native(data[i]);
-        }
-    }
-
-    /**
-     * @brief       Reads the image data from given file
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    void read_image
-    (
-        std::string const& file,
-        std::size_t width,
-        std::size_t height,
-        std::streamoff start
-    )
-    {
-        std::fstream image_file(file);
-        data.resize(width*height);
-        image_file.seekg(start);
-
-        read_image_logic(image_file);
-
-        image_file.close();
-    }
-
-    /**
-    * @brief       Reads the image data from given file
-    * @details     This method reserves width*height space for image buffer
-    *              and reads the image data from specific position in file
-    * @param[in]   file path where the file resides
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-   */
-    void read_image(std::string const& file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, 0);
-    }
-
-    /**
-    * @brief       Reads the image data from the given filestream
-    * @details     This method reserves width*height space for image buffer
-    *              and reads the image data from specific position in filestream
-    * @param[in,out] file filestream set to open mode for reading
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-    * @param[in]   start Starting position of image data
-   */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        data.resize(width*height);
-        file.seekg(start);
-
-        read_image_logic(file);
-    }
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from current position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, file.tellg());
-    }
-};
-
-/**
- * @brief   Image specialization for 32-bit IEEE single precision floating point data value
-*/
-template <>
-struct image<bitpix::_B32> : public image_buffer<boost::float32_t>
-{
-public:
-    /**
-     * @brief   Default constructor used to create a standalone object of image
-    */
-    image() {}
-
-    /**
-     * @brief       Constructs an image object from the file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::string const& file, std::size_t width, std::size_t height, std::streamoff start) :
-        image_buffer<boost::float32_t>(width, height)
-    {
-        std::fstream image_file(file);
-        image_file.seekg(start);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-
-    /**
-     * @brief       Constructs an image object from the given file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from given file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::string const& file, std::size_t width, std::size_t height) :
-        image_buffer<boost::float32_t>(width, height)
-    {
-        std::fstream image_file(file);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-    /**
-   * @brief       Constructs an image object from the given filestream
-   * @details     This constructor reserves width*height space for image buffer
-   *              and reads the image data from specific position in filestream
-   * @param[in,out] file filestream set to open mode for reading
-   * @param[in]   width Width of the image
-   * @param[in]   height Height of the image
-   * @param[in]   start Starting position of image data
-  */
-    image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        read_image(file, width, height, start);
-    }
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from  filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height);
-    }
-
-    /**
-    * @brief       Reads the 8bit image data from the given filestream
-    * @param[in,out] file filestream set to open mode for reading
-   */
-    void read_image_logic(std::fstream &image_file)
-    {
-        pixel_data single_pixel;
-        for (std::size_t i = 0; i < height*width; i++)
-        {
-            image_file.read((char*)single_pixel.byte, 4);
-            data[i] = (single_pixel.byte[3] << 0) | (single_pixel.byte[2] << 8) |
-                (single_pixel.byte[1] << 16) | (single_pixel.byte[0] << 24);
-        }
-    }
-    /**
-     * @brief       Reads the image data from given file
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    void read_image
-    (
-        std::string const& file,
-        std::size_t width,
-        std::size_t height,
-        std::streamoff start
-    )
-    {
-        std::fstream image_file(file);
-        data.resize(width*height);
-        image_file.seekg(start);
-
-        read_image_logic(image_file);
-        image_file.close();
-    }
-    /**
-    * @brief       Reads the image data from given file
-    * @details     This method reserves width*height space for image buffer
-    *              and reads the image data from specific position in file
-    * @param[in]   file path where the file resides
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-   */
-    void read_image(std::string const& file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, 0);
-    }
-
-    /**
-    * @brief       Reads the image data from the given filestream
-    * @details     This method reserves width*height space for image buffer
-    *              and reads the image data from specific position in filestream
-    * @param[in,out] file filestream set to open mode for reading
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-    * @param[in]   start Starting position of image data
-   */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        data.resize(width*height);
-        file.seekg(start);
-
-        read_image_logic(file);
-    }
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from current position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, file.tellg());
-    }
-};
-
-/**
- * @brief   Image specialization for 64-bit IEEE double precision floating point data value
-*/
-template <>
-struct image<bitpix::_B64> : public image_buffer<boost::float64_t>
-{
-public:
-    /**
-     * @brief   Default constructor used to create a standalone object of image
-    */
-    image() {}
-
-    /**
-     * @brief       Constructs an image object from the file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from specific position in file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-     * @param[in]   start Starting position of image data
-    */
-    image(std::string const& file, std::size_t width, std::size_t height, std::streamoff start) :
-        image_buffer<boost::float64_t>(width, height)
-    {
-        std::fstream image_file(file);
-        image_file.seekg(start);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-    /**
-     * @brief       Constructs an image object from the given file
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from given file
-     * @param[in]   file path where the file resides
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::string const& file, std::size_t width, std::size_t height) :
-        image_buffer<boost::float64_t>(width, height)
-    {
-        std::fstream image_file(file);
-        read_image_logic(image_file);
-        image_file.close();
-    }
-    /**
-  * @brief       Constructs an image object from the given filestream
-  * @details     This constructor reserves width*height space for image buffer
-  *              and reads the image data from specific position in filestream
-  * @param[in,out] file filestream set to open mode for reading
-  * @param[in]   width Width of the image
-  * @param[in]   height Height of the image
-  * @param[in]   start Starting position of image data
- */
-    image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        read_image(file, width, height, start);
-    }
-    /**
-     * @brief       Constructs an image object from the given filestream
-     * @details     This constructor reserves width*height space for image buffer
-     *              and reads the image data from  filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height);
-    }
-
-    /**
-    * @brief       Reads the 8bit image data from the given filestream
-    * @param[in,out] file filestream set to open mode for reading
-   */
-    void read_image_logic(std::fstream &image_file)
-    {
-        pixel_data single_pixel;
-        for (std::size_t i = 0; i < height*width; i++)
-        {
-            image_file.read((char*)single_pixel.byte, 8);
-            data[i] = (single_pixel.byte[7] << 0) | (single_pixel.byte[6] << 8) |
-                (single_pixel.byte[5] << 16) | (single_pixel.byte[4] << 24) |
-                (single_pixel.byte[3] << 32) | (single_pixel.byte[2] << 40) |
-                (single_pixel.byte[1] << 48) | (single_pixel.byte[0] << 56);
-        }
-    }
-
-    /**
-      * @brief       Reads the image data from given file
-      * @details     This method reserves width*height space for image buffer
-      *              and reads the image data from specific position in file
-      * @param[in]   file path where the file resides
-      * @param[in]   width Width of the image
-      * @param[in]   height Height of the image
-      * @param[in]   start Starting position of image data
-     */
-    void read_image
-    (
-        std::string const& file,
-        std::size_t width,
-        std::size_t height,
-        std::streamoff start
-    )
-    {
-        std::fstream image_file(file);
-        data.resize(width*height);
-        image_file.seekg(start);
-
-        read_image_logic(image_file);
-
-        image_file.close();
-    }
-
-    /**
-    * @brief       Reads the image data from given file
-    * @details     This method reserves width*height space for image buffer
-    *              and reads the image data from specific position in file
-    * @param[in]   file path where the file resides
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-   */
-    void read_image(std::string const& file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, 0);
-    }
-
-    /**
-    * @brief       Reads the image data from the given filestream
-    * @details     This method reserves width*height space for image buffer
-    *              and reads the image data from specific position in filestream
-    * @param[in,out] file filestream set to open mode for reading
-    * @param[in]   width Width of the image
-    * @param[in]   height Height of the image
-    * @param[in]   start Starting position of image data
-   */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height, std::streamoff start)
-    {
-        data.resize(width*height);
-        file.seekg(start);
-
-        read_image_logic(file);
-    }
-    /**
-     * @brief       Reads the image data from the given filestream
-     * @details     This method reserves width*height space for image buffer
-     *              and reads the image data from current position in filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   width Width of the image
-     * @param[in]   height Height of the image
-    */
-    void read_image(std::fstream &file, std::size_t width, std::size_t height)
-    {
-        read_image(file, width, height, file.tellg());
-    }
-};
-
 }}} //namespace boost::astronomy::io
 
 #endif // !BOOST_ASTRONOMY_IO_IMAGE_HPP

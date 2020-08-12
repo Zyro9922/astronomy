@@ -1,5 +1,6 @@
 /*=============================================================================
 Copyright 2019 Pranam Lashkari <plashkari628@gmail.com>
+Copyright 2020 Gopi Krishna Menon <krishnagopi487.github@outlook.com>
 
 Distributed under the Boost Software License, Version 1.0. (See accompanying
 file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
@@ -8,7 +9,6 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #ifndef BOOST_ASTRONOMY_IO_BINARY_TABLE_HPP
 #define BOOST_ASTRONOMY_IO_BINARY_TABLE_HPP
 
-#include <fstream>
 #include <stdexcept>
 #include <iterator>
 #include <algorithm>
@@ -18,16 +18,15 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/endian/conversion.hpp>
+#include <boost/cstdint.hpp>
+#include <boost/cstdfloat.hpp>
 
 #include <boost/astronomy/io/table_extension.hpp>
 #include <boost/astronomy/io/column.hpp>
 #include <boost/astronomy/io/column_data.hpp>
+#include <boost/astronomy/io/data_conversions.hpp>
 
-/**
- * @file    binary_table.hpp
- * @author  Pranam Lashkari
- * @details This file contains definition for binary_table_extension structure
- */
+
 
 namespace boost { namespace astronomy { namespace io {
  /**
@@ -40,50 +39,25 @@ namespace boost { namespace astronomy { namespace io {
 struct binary_table_extension : table_extension
 {
 public:
+
     /**
-     * @brief       Constructs an binary_table_extension object from the given filestream
-     * @details     This constructor constructs an binary_table_extension object by reading the
-     *              header information,data from the filestream and populates the field
-     *              information that can be used for easy access to table data
-     * @param[in,out] file filestream set to open mode for reading
-     * @note        After the reading the file pointer/cursor will be set to the end of logical HDU unit
+     * @brief       Creates a standalone object of binary_table_extension
     */
-    binary_table_extension(std::fstream &file) : table_extension(file)
-    {
-        set_binary_table_info(file);
-        set_unit_end(file);
+    binary_table_extension() {}
+
+    
+    /**
+    * @brief      Constructs an Binary Table object from header and data buffer
+    * @param[in]  other Header part of Binary table
+    * @param[in]  data_buffer Data part of Binary table
+   */
+    binary_table_extension(header const& other, const std::string& data_buffer) : table_extension(other) {
+
+        set_binary_table_info(data_buffer);
+
     }
 
     
-
-    /**
-     * @brief       Constructs an binary_table_extension object from the given filestream and hdu object
-     * @details     Constructs an  binary_table_extension object by reading the data from filestream
-     *              and header information from hdu object passed as an argument
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in]   other hdu object containing the header information of the current extension HDU
-     * @note        After the reading the file pointer/cursor will be set to the end of logical HDU unit
-    */
-    binary_table_extension(std::fstream &file, hdu const& other) : table_extension(file, other)
-    {
-        set_binary_table_info(file);
-        set_unit_end(file);
-    }
-
-    /**
-     * @brief       Constructs an binary_table_extension object from the given position in filestream
-     * @details     Constructs an binary_table_extension object by reading the HDU information from the
-     *              given  filestream, starting at pos
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in] pos File Pointer/cursor position from where the header information is to be read
-     * @note        After the reading the file pointer/cursor will be set to the end of logical HDU unit
-    */
-    binary_table_extension(std::fstream &file, std::streampos pos) : table_extension(file, pos)
-    {
-        set_binary_table_info(file);
-        set_unit_end(file);
-    }
-
     /**
      * @brief    Populates the metadata information for all fields of binary_table_extension
      * @details  This method populates the metadata information for all fields in a table
@@ -93,462 +67,106 @@ public:
     void populate_column_data()
     {
         std::size_t start = 0;
-        for (std::size_t i = 0; i < this->tfields; i++)
+        for (std::size_t i = 0; i < this->tfields_; i++)
         {
-            col_metadata[i].index(i + 1);
+            col_metadata_[i].index(i + 1);
 
-            col_metadata[i].TFORM(
-                value_of<std::string>("TFORM" + boost::lexical_cast<std::string>(i + 1))
+            col_metadata_[i].TFORM(
+                hdu_header.value_of<std::string>("TFORM" + boost::lexical_cast<std::string>(i + 1))
             );
 
-            col_metadata[i].TBCOL(start);
+            col_metadata_[i].TBCOL(start);
 
-            start += column_size(col_metadata[i].TFORM());
-
-            try {
-                col_metadata[i].TTYPE(
-                    value_of<std::string>("TTYPE" + boost::lexical_cast<std::string>(i + 1))
-                );
-
-                col_metadata[i].comment(
-                    value_of<std::string>(col_metadata[i].TTYPE())
-                );
-            }
-            catch (std::out_of_range e) {/*Do Nothing*/ }
+            start += column_size(col_metadata_[i].TFORM());
 
             try {
-                col_metadata[i].TUNIT(
-                    value_of<std::string>("TUNIT" + boost::lexical_cast<std::string>(i + 1))
+                col_metadata_[i].TTYPE(
+                    hdu_header.value_of<std::string>("TTYPE" + boost::lexical_cast<std::string>(i + 1))
+                );
+
+                col_metadata_[i].comment(
+                    hdu_header.value_of<std::string>(col_metadata_[i].TTYPE())
                 );
             }
-            catch (std::out_of_range e) {/*Do Nothing*/ }
+            catch (std::out_of_range&) {/*Do Nothing*/ }
 
             try {
-                col_metadata[i].TSCAL(
-                    value_of<double>("TSCAL" + boost::lexical_cast<std::string>(i + 1))
+                col_metadata_[i].TUNIT(
+                    hdu_header.value_of<std::string>("TUNIT" + boost::lexical_cast<std::string>(i + 1))
                 );
             }
-            catch (std::out_of_range e) {/*Do Nothing*/ }
+            catch (std::out_of_range&) {/*Do Nothing*/ }
 
             try {
-                col_metadata[i].TZERO(
-                    value_of<double>("TZERO" + boost::lexical_cast<std::string>(i + 1))
+                col_metadata_[i].TSCAL(
+                    hdu_header.value_of<double>("TSCAL" + boost::lexical_cast<std::string>(i + 1))
                 );
             }
-            catch (std::out_of_range e) {/*Do Nothing*/ }
+            catch (std::out_of_range&) {/*Do Nothing*/ }
 
             try {
-                col_metadata[i].TDISP(
-                    value_of<std::string>("TDISP" + boost::lexical_cast<std::string>(i + 1))
+                col_metadata_[i].TZERO(
+                    hdu_header.value_of<double>("TZERO" + boost::lexical_cast<std::string>(i + 1))
                 );
             }
-            catch (std::out_of_range e) {/*Do Nothing*/ }
+            catch (std::out_of_range&) {/*Do Nothing*/ }
 
             try {
-                col_metadata[i].TDIM(
-                    value_of<std::string>("TDIM" + boost::lexical_cast<std::string>(i + 1))
+                col_metadata_[i].TDISP(
+                    hdu_header.value_of<std::string>("TDISP" + boost::lexical_cast<std::string>(i + 1))
                 );
             }
-            catch (std::out_of_range e) {/*Do Nothing*/ }
+            catch (std::out_of_range&) {/*Do Nothing*/ }
+
+            try {
+                col_metadata_[i].TDIM(
+                    hdu_header.value_of<std::string>("TDIM" + boost::lexical_cast<std::string>(i + 1))
+                );
+            }
+            catch (std::out_of_range&) {/*Do Nothing*/ }
         }
-    }
-
-    /**
-     * @brief       Reads the data associated with binary_table_extension HDU from the filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @note        After the reading the file pointer/cursor will be set to the end of logical HDU unit
-    */
-    void read_data(std::fstream &file)
-    {
-        file.read(&data[0], naxis(1)*naxis(2));
-        set_unit_end(file);
     }
 
     /**
      * @brief       Gets the metadata along with value(field_value) for every row of specified field
-     * @details     This methods takes a field name as argument and returns the metadata information
-     *              of the field along with the field value for all the rows in the table.
+     * @details     This methods takes a field name as argument and returns the
+     *              metadata information of the field along with the field value for all the
+     *              rows in the table.
      * @param[in]   name Name of the field
-     * @return      Returns the metadata along with value for every row of specified field
-     * @todo        From what i feel so far this function provides returns empty column
+     * @return      Returns the metadata along with value for every row of
+     *              specified field
+     */
+    template <typename ColDataType>
+    std::unique_ptr<column_data<ColDataType>> get_column(const std::string name) {
+        auto column_info = std::find_if(
+            col_metadata_.begin(), col_metadata_.end(),
+            [&name](const column& col) { return col.TTYPE() == name; }
+        );
+
+        if (column_info == col_metadata_.end()) { return nullptr; }
+
+        return parse_to<ColDataType>(*column_info);
+    }
+
+    /**
+     * @brief       Returns the data of Binary Table
     */
-    std::unique_ptr<column> get_column(std::string name) const
-    {
-        for (auto& col : col_metadata)
-        {
-            if (col.TTYPE() == name)
-            {
-                if (element_count(col.TFORM()) == 1)
-                {
-                    switch (get_type(col.TFORM()))
-                    {
-                    case 'L':
-                    {
-                        auto result = std::make_unique<column_data<bool>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> bool {
-                                if (*element == 'T') return true;
-                                else return false;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'X':
-                    {
-                        auto result = std::make_unique<column_data<char>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> char {
-                                return *element;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'B':
-                    {
-                        auto result = std::make_unique<column_data<std::uint8_t>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> std::uint8_t {
-                                return static_cast<std::uint8_t>(*element);
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'I':
-                    {
-                        auto result = std::make_unique<column_data<std::int16_t>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> std::int16_t {
-                                return boost::endian::big_to_native(*reinterpret_cast<const std::int16_t*>(element));
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'J':
-                    {
-                        auto result = std::make_unique<column_data<std::int32_t>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> std::int32_t {
-                                return boost::endian::big_to_native(*reinterpret_cast<const std::int32_t*>(element));
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'A':
-                    {
-                        auto result = std::make_unique<column_data<char>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> char {
-                                return *element;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'E':
-                    {
-                        auto result = std::make_unique<column_data<float>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> float {
-                                float result = (element[3] << 0) | (element[2] << 8) |
-                                                (element[1] << 16) | (element[0] << 24);
-                                return result;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'D':
-                    {
-                        auto result = std::make_unique<column_data<double>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> double {
-                                double result = (element[7] << 0) | (element[6] << 8) |
-                                                (element[5] << 16) | (element[4] << 24) |
-                                                (element[3] << 32) | (element[2] << 40) |
-                                                (element[1] << 48) | (element[0] << 56);
-                                return result;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'C':
-                    {
-                        auto result = std::make_unique<column_data<std::complex<float>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> std::complex<float> {
-                                std::complex<float> result;
-                                float temp = (element[3] << 0) | (element[2] << 8) |
-                                                (element[1] << 16) | (element[0] << 24);
-                                result.real(temp);
+    std::vector<char>& get_data() { return data_; }
 
-                                element += 4;
-                                temp = (element[3] << 0) | (element[2] << 8) |
-                                        (element[1] << 16) | (element[0] << 24);
-                                result.imag(temp);
-                                return result;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'M':
-                    {
-                        auto result = std::make_unique<column_data<std::complex<double>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> std::complex<double> {
-                            std::complex<double> result;
-                            double temp = (element[7] << 0) | (element[6] << 8) |
-                                            (element[5] << 16) | (element[4] << 24) |
-                                            (element[3] << 32) | (element[2] << 40) |
-                                            (element[1] << 48) | (element[0] << 56);
-                            result.real(temp);
+    /**
+     * @brief       Returns the data of Binary table (const version)
+    */
+    const std::vector<char>& get_data() const { return data_; }
 
-                            element += 8;
-                            temp = (element[7] << 0) | (element[6] << 8) |
-                                    (element[5] << 16) | (element[4] << 24) |
-                                    (element[3] << 32) | (element[2] << 40) |
-                                    (element[1] << 48) | (element[0] << 56);
-                            result.imag(temp);
-                            return result;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'P':
-                    {
-                        auto result = std::make_unique<column_data<std::pair<std::int32_t, std::int32_t>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [](char const* element) -> std::pair<std::int32_t, std::int32_t> {
-                                auto x = boost::endian::big_to_native(*reinterpret_cast<const std::int32_t*>(element));
-                                auto y = boost::endian::big_to_native(*(reinterpret_cast<const std::int32_t*>(element)+1));
-                                return std::make_pair(x,y);
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    default:
-                        throw invalid_table_colum_format();
-                    }
-                }
-                else
-                {
-                    std::size_t num_of_element = element_count(col.TFORM());
-                    switch (get_type(col.TFORM()))
-                    {
-                    case 'L':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<bool>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<bool> {
-                                std::vector<bool> values;
-                                values.reserve(num_of_element);
-                                for (std::size_t i = 0; i < num_of_element; i++)
-                                {
-                                    if (*element == 'T') values.emplace_back(true);
-                                    else values.emplace_back(false);
-                                }
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'X':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<char>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<char> {
-                                return std::vector<char>(element, element + num_of_element);
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'B':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<std::uint8_t>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<std::uint8_t> {
-                                return std::vector<std::uint8_t>(
-                                    reinterpret_cast<const std::uint8_t*>(element),
-                                    reinterpret_cast<const std::uint8_t*>(element)+ num_of_element
-                                    );
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'I':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<std::int16_t>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<std::int16_t> {
-                                std::vector<std::int16_t> values;
-                                values.reserve(num_of_element);
-                                for (std::size_t i = 0; i < num_of_element; i++)
-                                {
-                                    values.emplace_back(
-                                        boost::endian::big_to_native(
-                                            *(reinterpret_cast<const std::int16_t*>(element) +
-                                             num_of_element
-                                        )));
-                                }
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'J':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<std::int32_t>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<std::int32_t> {
-                                std::vector<std::int32_t> values;
-                                values.reserve(num_of_element);
-                                for (std::size_t i = 0; i < num_of_element; i++)
-                                {
-                                    values.emplace_back(
-                                        boost::endian::big_to_native(
-                                            *(reinterpret_cast<const std::int32_t*>(element) +
-                                             num_of_element
-                                        )));
-                                }
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'A':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<char>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<char> {
-                                return std::vector<char>(element, element + num_of_element);
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'E':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<float>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<float> {
-                                std::vector<float> values(
-                                    reinterpret_cast<const float*>(element),
-                                    reinterpret_cast<const float*>(element) + num_of_element
-                                );
-
-                                std::transform(
-                                    values.begin(),
-                                    values.end(),
-                                    values.begin(),
-                                    [](float var) -> float{
-                                        char *native = reinterpret_cast<char*>(&var);
-                                        return (native[3] << 0) | (native[2] << 8) |
-                                                (native[1] << 16) | (native[0] << 24);
-                                    });
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'D':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<double>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<double> {
-                                std::vector<double> values(
-                                    reinterpret_cast<const double*>(element),
-                                    reinterpret_cast<const double*>(element) + num_of_element
-                                );
-
-                                std::transform(
-                                    values.begin(),
-                                    values.end(),
-                                    values.begin(),
-                                    [](double var) -> float{
-                                        char *native = reinterpret_cast<char*>(&var);
-                                        return (native[7] << 0) | (native[6] << 8) |
-                                                (native[5] << 16) | (native[4] << 24) |
-                                                (native[3] << 32) | (native[2] << 40) |
-                                                (native[1] << 48) | (native[0] << 56);
-                                    });
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'C':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<std::complex<float>>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<std::complex<float>> {
-                                std::vector<std::complex<float>> values;
-                                values.reserve(num_of_element);
-                                for (auto i = reinterpret_cast<const float*>(element); i != i + num_of_element*2; i+=2)
-                                {
-                                    char const* char_ptr = reinterpret_cast<const char*>(i);
-                                    float real = (char_ptr[3] << 0) | (char_ptr[2] << 8) |
-                                                (char_ptr[1] << 16) | (char_ptr[0] << 24);
-
-                                    char_ptr += 4;
-                                    float img = (char_ptr[3] << 0) | (char_ptr[2] << 8) |
-                                                (char_ptr[1] << 16) | (char_ptr[0] << 24);
-
-                                    values.emplace_back(real, img);
-                                }
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'M':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<std::complex<double>>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<std::complex<double>> {
-                            std::vector<std::complex<double>> values;
-                            values.reserve(num_of_element);
-                            for (auto i = reinterpret_cast<const double*>(element); i != i + num_of_element*2; i+=2)
-                                {
-                                    char const* char_ptr = reinterpret_cast<const char*>(i);
-                                    double real = (char_ptr[3] << 0) | (char_ptr[2] << 8) |
-                                                (char_ptr[1] << 16) | (char_ptr[0] << 24);
-
-                                    char_ptr += 4;
-                                    double img = (char_ptr[3] << 0) | (char_ptr[2] << 8) |
-                                                (char_ptr[1] << 16) | (char_ptr[0] << 24);
-
-                                    values.emplace_back(real, img);
-                                }
-                            return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    case 'P':
-                    {
-                        auto result = std::make_unique<column_data<std::vector<std::pair<std::int32_t, std::int32_t>>>>(col);
-                        fill_column(result->get_data(), col.TBCOL(), column_size(col.TFORM()),
-                            [num_of_element](char const* element) -> std::vector<std::pair<std::int32_t, std::int32_t>> {
-                                std::vector<std::pair<std::int32_t, std::int32_t>> values;
-                                values.reserve(num_of_element);
-                                for (std::size_t i = 0; i < num_of_element; i++)
-                                {
-                                    values.emplace_back(
-                                        boost::endian::big_to_native(
-                                            *(reinterpret_cast<const std::int32_t*>(element) + i)),
-                                        boost::endian::big_to_native(
-                                            *(reinterpret_cast<const std::int32_t*>(element)+ i +1))
-                                        );
-                                }
-                                return values;
-                            }
-                        );
-                        return std::move(result);
-                    }
-                    default:
-                        throw invalid_table_colum_format();
-                    }
-                }
-            }
-        }
-
-        return std::unique_ptr<column>(nullptr);
+    /**
+     * @brief      Sets the data of Binary Table from data_buffer
+     * @param[in]  data_buffer Data of Binary Table
+    */
+    void set_data(const std::string& data_buffer) {
+        data_.clear();
+        col_metadata_.clear();
+        col_metadata_.resize(tfields_);
+        set_binary_table_info(data_buffer);
     }
 
     /**
@@ -556,16 +174,14 @@ public:
      * @param[in] format Field format
      * @return    Returns the width of the field
     */
-    std::size_t column_size(std::string format) const
+    static std::size_t column_size(std::string format)
     {
         std::string form = boost::trim_copy_if(format, [](char c) -> bool {
                             return c == '\'' || c == ' ';
                         });
-
-        return form.length() > 1 ?
-            boost::lexical_cast<std::size_t>(form.substr(0, form.length() - 1)) *
-                type_size(form[form.length() - 1]) :
-            type_size(form[0]);
+        auto no_of_elements = element_count(form);
+        auto size_type = type_size(get_type(form));
+        return no_of_elements * size_type;
     }
 
 
@@ -574,7 +190,7 @@ public:
      * @param[in]   format  Format of field
      * @return      Number of elements in present in the field for which the format is specified
     */
-    std::size_t element_count(std::string format) const
+    static std::size_t element_count(std::string format) 
     {
         std::string form = boost::trim_copy_if(format, [](char c) -> bool {
                             return c == '\'' || c == ' ';
@@ -590,7 +206,7 @@ public:
      * @param[in]   format  Format of field
      * @return      Type of value stored
     */
-    char get_type(std::string format) const
+    static char get_type(std::string format)
     {
         std::string form = boost::trim_copy_if(format, [](char c) -> bool {
                             return c == '\'' || c == ' ';
@@ -604,7 +220,7 @@ public:
      * @param[in]   type  Field type based on binary table extension
      * @return      Size of perticular type
     */
-    std::size_t type_size(char type) const
+    static std::size_t type_size(char type) 
     {
         switch (type)
         {
@@ -639,34 +255,58 @@ private:
     /**
      * @brief       Populates the container of given type with field_value for every row of specified field
      * @param[in,out] column_container Container that stores the field value for every row of specified field
-     * @param[in]   start Position where column begins for the field
-     * @param[in]   column_size Total size of the field
+     * @param[in]   col_metadata Column Metadata ( Some problems exists otherwise this param is not needed )
      * @param[in]   lambda Lambda function for fetching the field data from data buffer
-     * @todo        Why is column size present there
     */
-    template<typename VectorType, typename Lambda>
-    void fill_column
-    (
-        std::vector<VectorType> &column_container,
-        std::size_t start,
-        std::size_t column_size,
+    template <typename VectorType, typename Lambda>
+    void fill_col(
+        std::vector<VectorType>& column_container,
+        const column& col_metadata,
         Lambda lambda
-    ) const
-    {
-        column_container.reserve(naxis(2));
-        for (std::size_t i = 0; i < naxis(2); i++)
-        {
-            column_container.emplace_back(lambda(this->data.data() + (i * naxis(1) + start)));
+                 ) const {
+        auto is_single_element = element_count(col_metadata.TFORM()) > 1;
+        column_container.reserve(hdu_header.naxis(2));
+        for (std::size_t i = 0; i < hdu_header.naxis(2); i++) {
+
+            std::string raw_data;
+
+            auto start_off = this->data_.data() + (i * hdu_header.naxis(1) + col_metadata.TBCOL());
+            auto ending_off = this->data_.data() +(i * hdu_header.naxis(1) + col_metadata.TBCOL()) +
+                column_size(col_metadata.TFORM());
+
+            if (is_single_element) {
+                raw_data.assign(start_off, ending_off);
+                column_container.push_back(lambda(raw_data,col_metadata));
+            }
+            else {
+                ending_off = start_off + (ending_off - start_off) * element_count(col_metadata.TFORM());
+                raw_data.assign(start_off, ending_off);
+                column_container.push_back(lambda(raw_data,col_metadata));
+            }
         }
     }
-private:
-    void set_binary_table_info(std::fstream& file)
-    {
-        populate_column_data();
-        std::copy_n(std::istream_iterator<char>(file), naxis(1) * naxis(2), std::back_inserter(data));
 
+    /**
+     * @brief  Initializes the current object with  column metadata and table data
+     * @param[in] data_buffer Data of the Binary table
+    */
+    void set_binary_table_info(const std::string& data_buffer) {
+        populate_column_data();
+        data_.assign(data_buffer.begin(), data_buffer.end());
     }
 
+    /**
+     * @brief  Converts raw binary table field data to the given type and returns the column data
+     * @param[in] col_metadata Column metadata used for parsing
+    */
+    template <typename T>
+    std::unique_ptr<column_data<T>> parse_to(const column& col_metadata) {
+        auto result = std::make_unique<column_data<T>>(col_metadata);
+        fill_col(result->get_data(), col_metadata, data_conversions::convert<T>);
+        return result;
+    }
+
+    
 };
 
 }}} //namespace boost::astronomy::io

@@ -1,5 +1,6 @@
 /*=============================================================================
 Copyright 2018 Pranam Lashkari <plashkari628@gmail.com>
+Copyright 2020 Gopi Krishna Menon <krishnagopi487.github@outlook.com>
 
 Distributed under the Boost Software License, Version 1.0. (See accompanying
 file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
@@ -11,15 +12,8 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <string>
 #include <vector>
 #include <cstddef>
-#include <valarray>
 
 #include <boost/astronomy/io/hdu.hpp>
-
-/**
- * @file    extension_hdu.hpp
- * @author  Pranam Lashkari
- * @details Contains the definition for extension_hdu
-*/
 
 namespace boost { namespace astronomy { namespace io {
 
@@ -29,12 +23,13 @@ namespace boost { namespace astronomy { namespace io {
  *          with setting the value of variables - extname, gcount,pcount
  * @see     boost::astronomy::io::hdu
 */
-struct extension_hdu : public boost::astronomy::io::hdu
+struct extension_hdu
 {
 protected:
     std::string extname;
     int gcount = 1;
     int pcount = 0;
+    header hdu_header;
 
 public:
     /**
@@ -42,51 +37,27 @@ public:
     */
     extension_hdu() {}
 
+    
     /**
-     * @brief   Constructs an extention_hdu object from the given filestream
-     * @details This constructor constructs an extension_hdu object by reading
-     *          the header information of the extention HDU from the given filestream
-     * @param[in,out] file filestream set to open mode for reading
-     * @note    After the reading the file pointer/cursor will be set to the end of logical HDU unit
-    */
-    extension_hdu(std::fstream &file) : hdu(file)
-    {
-        set_extension_info();
-    }
-
-    /**
-     * @brief     Constructs an extention_hdu from the filestream and hduobject passed as an argument
-     * @details   This constructor accepts a file stream and hdu_object as argument and creates a extention_hdu
+     * @brief     Constructs an extention_hdu from the hduobject passed as an argument
+     * @details   This constructor accepts a hdu_object as argument and creates a extention_hdu
      *            by copying the header information from hdu_object
-     * @param[in,out] file filestream set to open mode for reading
      * @param[in] other hdu object containing the header information
-     * @note    After the reading the file pointer/cursor will be set to the end of logical HDU unit
     */
-    extension_hdu(std::fstream &file, hdu const& other) : hdu(other)
+    extension_hdu(header const& other) :hdu_header(other)
     {
         set_extension_info();
     }
 
-    /**
-     * @brief     Constructs an extention_hdu from the specified pos in filestream passed as arguments
-     * @details   This constructor accepts a filestream and streamposition as argument and creates a extention_hdu
-     *            by extracting the header information from the given file
-     * @param[in,out] file filestream set to open mode for reading
-     * @param[in] pos File Pointer/cursor position from where the header information is to be read
-     * @note    After the reading the file pointer/cursor will be set to the end of logical HDU unit
-    */
-    extension_hdu(std::fstream &file, std::streampos pos) : hdu(file, pos)
-    {
-        set_extension_info();
-    }
+    
 private:
     /**
      * @brief       Sets the extension_hdu's info from the header
     */
     void set_extension_info() {
-        gcount = this->value_of<int>("GCOUNT");
-        pcount = this->value_of<int>("PCOUNT");
-        extname = this->value_of<std::string>("EXTNAME");
+        gcount = hdu_header.value_of<int>("GCOUNT");
+        pcount = hdu_header.value_of<int>("PCOUNT");
+        extname = hdu_header.value_of<std::string>("EXTNAME");
     }
 };
 

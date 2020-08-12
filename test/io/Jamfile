@@ -1,0 +1,12 @@
+using testing ;
+path-constant CURR_DIR : . ;
+
+run t_ascii_table.cpp : $(CURR_DIR) ;
+run t_binary_table.cpp : $(CURR_DIR) ;
+run t_card.cpp : $(CURR_DIR) ;
+run t_hdu.cpp : $(CURR_DIR) ;
+run t_primary_hdu.cpp : $(CURR_DIR) ;
+run t_fits.cpp : $(CURR_DIR) ;
+run t_stream_reader.cpp : $(CURR_DIR) ;
+run t_fits_reader.cpp : $(CURR_DIR) ;
+run t_data_conversions.cpp : $(CURR_DIR) ;

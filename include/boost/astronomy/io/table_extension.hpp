@@ -29,9 +29,9 @@ namespace boost { namespace astronomy { namespace io {
 struct table_extension : public extension_hdu
 {
 protected:
-    std::size_t tfields;
-    std::vector<column> col_metadata;
-    std::vector<char> data;
+    std::size_t tfields_;
+    std::vector<column> col_metadata_;
+    std::vector<char> data_;
 
 public:
     /**
@@ -39,49 +39,31 @@ public:
     */
     table_extension() {}
 
+    
     /**
-     * @brief       Constructs a table_extension object by reading header information from given filestream
-     * @details     This constructor reads the header information of HDU from filestream and reserves the
-     *              space for storing information( metadata ) of all the fields in the table
-     * @param[in,out] file filestream set to open mode for reading
-     * @note        After the reading the file pointer/cursor will be set to the end of logical HDU unit
-    */
-    table_extension(std::fstream &file) : extension_hdu(file)
-    {
-        set_table_extension_info();
-    }
-
-    /**
-     * @brief       Constructs an table_extension from the filestream and hduobject passed as an argument
-     * @details     This constructor accepts a file stream and hdu_object as argument,creates a table_extension
+     * @brief       Constructs an table_extension from the hduobject passed as an argument
+     * @details     This constructor accepts hdu_object as argument,creates a table_extension
      *              by copying the header information from hdu_object and reserves the space for storing
      *              information(metadata) of all the fields in the table
-     * @param[in,out] file filestream set to open mode for reading
      * @param[in]   other hdu object containing the header information of the current extension HDU
-     * @note        After the reading the file pointer/cursor will be set to the end of logical HDU unit
     */
-    table_extension(std::fstream &file, hdu const& other) : extension_hdu(file, other)
+    table_extension(header const& other) : extension_hdu(other)
     {
         set_table_extension_info();
     }
 
+
     /**
-    * @brief     Constructs an table_extension from the specified pos in filestream passed as arguments
-    * @details   This constructor accepts a filestream and streamposition as argument and creates a table_extension
-    *            by extracting the header information from the given file. It also reserves the space for
-    *            storing information(metadata) of all fields in the table
-    * @param[in,out] file filestream set to open mode for reading
-    * @param[in] pos File Pointer/cursor position from where the header information is to be read
-    * @note    After the reading the file pointer/cursor will be set to the end of logical HDU unit
-   */
-    table_extension(std::fstream &file, std::streampos pos) : extension_hdu(file, pos)
-    {
-        set_table_extension_info();
+     * @brief Returns the header associated with the currently held primary hdu
+    */
+    header get_header() const {
+        return hdu_header;
     }
-private:
+
+    private:
     void set_table_extension_info() {
-        tfields = this->value_of<std::size_t>("TFIELDS");
-        col_metadata.reserve(tfields);
+        tfields_ = hdu_header.value_of<std::size_t>("TFIELDS");
+        col_metadata_.resize(tfields_);
     }
     
 };
