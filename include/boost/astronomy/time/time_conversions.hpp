@@ -64,61 +64,36 @@ DecimalHours GST(ptime t)
     return {T0};
 }
 
-class BadDirection : public exception{
-public:
-    const char * what() const noexcept override
-    {
-        return "Use East(E) or West(W).\n";
-    }
-};
+enum DIRECTION {WEST, EAST};
 
 //Local Sidereal Time (LST)
-DecimalHours LST(double longitude, char dir, double GST)
+DecimalHours LST(double longitude, DIRECTION dir, double GST)
 {
     if(longitude == 0)
       return {GST};
 
-    //GST in decimal only
-    int val = 0;
+    //Convert longitude to hours
+    double long_hours = longitude / 15.0;
 
     switch(dir)
     {
-        case 'W':
-        case 'w':
-            val = -1;
+        case WEST:
+          //Multiply with direction
+          long_hours = -1 * long_hours;
             break;
-        case 'E':
-        case 'e':
-            val = 1;
+        case EAST:
+          //Multiply with direction
+          long_hours = 1 * long_hours;
             break;
-        default:
-            val = 0;
-    }
-    try {
-        if (val == 0)
-            throw BadDirection();
-        else
-        {
-            //Convert longitude to hours
-            double long_hours = longitude / 15.0;
-
-            //Multiply with direction
-            long_hours = val * long_hours;
-
-            long_hours = long_hours + GST;
-
-            //Bring the result into the range 0 to 24 by adding or subtracting 24 if necessary.
-            //This is the local sidereal time (LST).
-            long_hours = long_hours - 24.0 * floor(long_hours/24.0);
-
-            return {long_hours};
-        }
-    }
-    catch(exception& e) {
-        std::cout << "Bad Direction: " << dir << ". " << e.what();
     }
 
-    return {0.0};
+    long_hours = long_hours + GST;
+
+    //Bring the result into the range 0 to 24 by adding or subtracting 24 if necessary.
+    //This is the local sidereal time (LST).
+    long_hours = long_hours - 24.0 * floor(long_hours/24.0);
+
+    return {long_hours};
 }
 
 #endif //BOOST_ASTRONOMY_TIME_CONVERSIONS
