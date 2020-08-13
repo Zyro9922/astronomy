@@ -13,7 +13,7 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 using namespace std;
 
-struct DecimalHours {
+struct decimal_hour {
 private:
     double dh = 0;
 
@@ -25,7 +25,7 @@ private:
     int seconds = 0;
 
 public:
-    DecimalHours(double const& d){
+ decimal_hour(double const& d){
       dh = d;
 
       time = dh;
@@ -34,6 +34,10 @@ public:
       minutes = (int)minutesRemainder;
       secondsRemainder = (minutesRemainder - minutes) * 60;
       seconds = (int)secondsRemainder;
+    }
+
+    decimal_hour(double const& h,double const& m,double const& s){
+      dh = h + m/60 + s/(60*60);
     }
 
     double get() const{
@@ -53,7 +57,7 @@ public:
     }
 };
 
-std::ostream& operator << (std::ostream &out, DecimalHours const& dh)
+std::ostream& operator << (std::ostream &out, decimal_hour const& dh)
 {
     std::string time_string = std::to_string(dh.get_hours()) + "h " + std::to_string(dh.get_minutes()) + "m " + std::to_string(dh.get_seconds()) + "s ";
     return out << "Hours: " << time_string;

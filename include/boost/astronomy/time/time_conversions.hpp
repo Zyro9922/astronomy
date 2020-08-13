@@ -32,7 +32,7 @@ using namespace boost::posix_time;
  * The Greenwich Sidereal Time(GST) is the sidereal time correct for observations
  * made on the Greenwich meridian, longitude 0◦.
  */
-DecimalHours GST(ptime t)
+decimal_hour GST(ptime t)
 {
     //Get date from UT
     date d = t.date();
@@ -67,7 +67,7 @@ DecimalHours GST(ptime t)
 enum DIRECTION {WEST, EAST};
 
 //Local Sidereal Time (LST)
-DecimalHours LST(double longitude, DIRECTION dir, double GST)
+decimal_hour LST(double longitude, DIRECTION dir, double GST)
 {
     if(longitude == 0)
       return {GST};
