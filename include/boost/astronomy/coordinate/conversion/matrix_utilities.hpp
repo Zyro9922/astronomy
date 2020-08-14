@@ -23,10 +23,17 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 #include <boost/units/physical_dimensions/plane_angle.hpp>
 #include <boost/units/systems/angle/degrees.hpp>
 
+//Time
+#include <boost/date_time/gregorian/gregorian.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 using namespace std;
 using namespace boost::numeric::ublas;
 namespace bnu = boost::numeric::ublas;
 namespace bu = boost::units;
+namespace bud = boost::units::degree;
+
+using namespace boost::gregorian;
 
 namespace boost { namespace astronomy { namespace coordinate {
 
@@ -276,6 +283,35 @@ struct extract_coordinates{
         std::cout << "Theta: " << theta * 180.0/M_PI << " Phi: " << phi * 180.0/M_PI << endl;
     }
 };
+
+struct obliquity_of_ecliptic{
+ private:
+  bu::quantity<bud::plane_angle, double> e = 0.0 * bud::degree;
+
+ public:
+  obliquity_of_ecliptic(date d)
+  {
+    double JD = d.julian_day(); //Ambiguity in Julian precision.
+
+    //JD for 2000 January 1.5
+    double S = JD - 2451545.0;
+
+    double T = S / 36525.0;
+
+    double DE = 46.815 * T + (0.0006 - 0.00181 * T) * T * T;
+
+    DE = DE / 3600.0;
+
+    double e_degrees =  23.439292 - DE;
+
+    e = e_degrees * bud::degree;
+  }
+
+  bu::quantity<bud::plane_angle, double> get(){
+    return e;
+  }
+};
+
 }}}
 
 #endif  // BOOST_ASTRONOMY_MATRIX_UTILITIES_HPP
