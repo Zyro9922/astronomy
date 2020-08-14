@@ -22,7 +22,7 @@ private:
     double minutesRemainder = 0;
     int minutes = 0;
     double secondsRemainder = 0;
-    int seconds = 0;
+    double seconds = 0;
 
 public:
  decimal_hour(double const& d){
@@ -33,7 +33,7 @@ public:
       minutesRemainder = (time - hours) * 60;
       minutes = (int)minutesRemainder;
       secondsRemainder = (minutesRemainder - minutes) * 60;
-      seconds = (int)secondsRemainder;
+      seconds = secondsRemainder;
     }
 
     decimal_hour(double const& h,double const& m,double const& s){
@@ -41,19 +41,19 @@ public:
     }
 
     double get() const{
-        return (double)dh;
+        return dh;
     }
 
-    double get_hours() const{
-        return (double)hours;
+    int get_hours() const{
+        return hours;
     }
 
-    double get_minutes() const{
-        return (double)minutes;
+    int get_minutes() const{
+        return minutes;
     }
 
     double get_seconds() const{
-        return (double)seconds;
+        return seconds;
     }
 };
 

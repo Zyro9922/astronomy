@@ -64,7 +64,7 @@ decimal_hour GST(ptime t)
     return {T0};
 }
 
-enum DIRECTION {WEST, EAST};
+enum class DIRECTION {WEST, EAST};
 
 //Local Sidereal Time (LST)
 decimal_hour LST(double longitude, DIRECTION dir, double GST)
@@ -77,11 +77,11 @@ decimal_hour LST(double longitude, DIRECTION dir, double GST)
 
     switch(dir)
     {
-        case WEST:
+      case DIRECTION::WEST:
           //Multiply with direction
           long_hours = -1 * long_hours;
             break;
-        case EAST:
+      case DIRECTION::EAST:
           //Multiply with direction
           long_hours = 1 * long_hours;
             break;
