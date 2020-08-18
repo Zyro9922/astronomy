@@ -18,9 +18,9 @@ private:
     double dh = 0;
 
     double time = 0;
-    int hours = 0;
+    long int hours = 0;
     double minutesRemainder = 0;
-    int minutes = 0;
+    long int minutes = 0;
     double secondsRemainder = 0;
     double seconds = 0;
 
@@ -44,11 +44,11 @@ public:
         return dh;
     }
 
-    int get_hours() const{
+    long int get_hours() const{
         return hours;
     }
 
-    int get_minutes() const{
+    long int get_minutes() const{
         return minutes;
     }
 
