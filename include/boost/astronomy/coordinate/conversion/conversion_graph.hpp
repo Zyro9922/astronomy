@@ -27,7 +27,6 @@ file License.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 namespace bu = boost::units;
 namespace bg = boost::geometry;
-namespace bud = boost::units::degree;
 namespace bac = boost::astronomy::coordinate;
 
 using namespace boost::units;

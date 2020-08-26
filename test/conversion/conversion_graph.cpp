@@ -37,9 +37,9 @@ BOOST_AUTO_TEST_CASE(ecliptic_to_horizon) {
   ecliptic_coord<double, quantity<bud::plane_angle>, quantity<bud::plane_angle>>
     ec(97.638119 * bud::degrees, -17.857969 * bud::degrees);
 
-  bu::quantity<bud::plane_angle, double> phi = 52.175 * bud::degree;
-  bu::quantity<bud::plane_angle, double> st = 77.337 * bud::degree;
-  bu::quantity<bud::plane_angle, double> obliquity = 23.446 * bud::degree;
+  quantity<bud::plane_angle, double> phi = 52.175 * bud::degree;
+  quantity<bud::plane_angle, double> st = 77.337 * bud::degree;
+  quantity<bud::plane_angle, double> obliquity = 23.446 * bud::degree;
 
   matrix<double> ans = convert("Ecliptic","Horizon",phi,st,obliquity,ec);
 
@@ -55,9 +55,9 @@ BOOST_AUTO_TEST_CASE(horizon_to_ecliptic) {
   horizon_coord<double, quantity<bud::plane_angle>, quantity<bud::plane_angle>>
       hc(153.491944 * bud::degrees, 40.399444  * bud::degrees);
 
-  bu::quantity<bud::plane_angle, double> phi = 52.175 * bud::degree;
-  bu::quantity<bud::plane_angle, double> st = 77.337 * bud::degree;
-  bu::quantity<bud::plane_angle, double> obliquity = 23.446 * bud::degree;
+  quantity<bud::plane_angle, double> phi = 52.175 * bud::degree;
+  quantity<bud::plane_angle, double> st = 77.337 * bud::degree;
+  quantity<bud::plane_angle, double> obliquity = 23.446 * bud::degree;
 
   matrix<double> ans = convert("Horizon","Ecliptic",phi,st,obliquity,hc);
 
