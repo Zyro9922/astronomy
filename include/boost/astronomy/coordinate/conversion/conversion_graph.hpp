@@ -33,8 +33,16 @@ using namespace boost::units;
 using namespace boost::units::si;
 using namespace boost::astronomy::coordinate;
 
+enum class COORDINATE_SYSTEM {
+  HORIZON,
+  EQUATORIAL_HA_DEC,
+  EQUATORIAL_RA_DEC,
+  ECLIPTIC,
+  GALACTIC};
+
 struct CoordinateData
 {
+  COORDINATE_SYSTEM coordinate_system;
   std::string coordinate_name;
 };
 
@@ -44,7 +52,7 @@ struct EdgeData
   matrix<double> conv_matrix;
 };
 
-using graph_t  = boost::adjacency_list<boost::vecS, boost::vecS,
+using graph_t = boost::adjacency_list<boost::vecS, boost::vecS,
     boost::directedS,
     CoordinateData,
     EdgeData>;
@@ -56,8 +64,8 @@ template
   typename CoordinateType = double,
   typename Angle = bu::quantity<bu::si::plane_angle, CoordinateType>
 >
-matrix<double> convert(const std::string& src,
-                       const std::string& dest,
+matrix<double> convert(const COORDINATE_SYSTEM src,
+                       const COORDINATE_SYSTEM dest,
                        const Angle& phi,
                        const Angle& st,
                        const Angle& obliquity,
@@ -72,56 +80,26 @@ matrix<double> convert(const std::string& src,
 
   const int graph_size = 5;
 
-  vertex_t vd0 = boost::add_vertex(CoordinateData{"Horizon"}, G);
-  vertex_t vd1 = boost::add_vertex(CoordinateData{"Equatorial_HA_Dec"}, G);
-  vertex_t vd2 = boost::add_vertex(CoordinateData{"Equatorial_RA_Dec"}, G);
-  vertex_t vd3 = boost::add_vertex(CoordinateData{"Ecliptic"}, G);
-  vertex_t vd4 = boost::add_vertex(CoordinateData{"Galactic"}, G);
+  vertex_t vd0 = boost::add_vertex(CoordinateData{COORDINATE_SYSTEM::HORIZON,"Horizon"}, G);
+  vertex_t vd1 = boost::add_vertex(CoordinateData{COORDINATE_SYSTEM::EQUATORIAL_HA_DEC,"Equatorial_HA_Dec"}, G);
+  vertex_t vd2 = boost::add_vertex(CoordinateData{COORDINATE_SYSTEM::EQUATORIAL_RA_DEC,"Equatorial_RA_Dec"}, G);
+  vertex_t vd3 = boost::add_vertex(CoordinateData{COORDINATE_SYSTEM::ECLIPTIC,"Ecliptic"}, G);
+  vertex_t vd4 = boost::add_vertex(CoordinateData{COORDINATE_SYSTEM::GALACTIC,"Galactic"}, G);
 
-  boost::add_edge(vd1, vd0, EdgeData{"Equatorial HA Dec to Horizon", bac::ha_dec_horizon<double, quantity<bud::plane_angle>, double>(phi).get()}, G);
-  boost::add_edge(vd0, vd1, EdgeData{"Horizon to Equatorial HA Dec", bac::ha_dec_horizon<double, quantity<bud::plane_angle>, double>(phi).get()}, G);
-  boost::add_edge(vd1, vd2, EdgeData{"Equatorial HA Dec to Equatorial RA Dec", bac::ha_dec_ra_dec<double, quantity<bud::plane_angle>, double>(st).get()}, G);
-  boost::add_edge(vd2, vd1, EdgeData{"Equatorial RA Dec to Equatorial HA Dec", bac::ha_dec_ra_dec<double, quantity<bud::plane_angle>, double>(st).get()}, G);
-  boost::add_edge(vd2, vd3, EdgeData{"Equatorial RA Dec to Ecliptic", bac::ra_dec_to_ecliptic<double, quantity<bud::plane_angle>, double>(obliquity).get()}, G);
-  boost::add_edge(vd3, vd2, EdgeData{"Ecliptic to Equatorial RA Dec", bac::ecliptic_to_ra_dec<double, quantity<bud::plane_angle>, double>(obliquity).get()}, G);
+  boost::add_edge(vd0, vd1, EdgeData{"Horizon to Equatorial HA Dec", bac::ha_dec_horizon<double, quantity<bu::degree::plane_angle>, double>(phi).get()}, G);
+  boost::add_edge(vd1, vd0, EdgeData{"Equatorial HA Dec to Horizon", bac::ha_dec_horizon<double, quantity<bu::degree::plane_angle>, double>(phi).get()}, G);
+  boost::add_edge(vd1, vd2, EdgeData{"Equatorial HA Dec to Equatorial RA Dec", bac::ha_dec_ra_dec<double, quantity<bu::degree::plane_angle>, double>(st).get()}, G);
+  boost::add_edge(vd2, vd1, EdgeData{"Equatorial RA Dec to Equatorial HA Dec", bac::ha_dec_ra_dec<double, quantity<bu::degree::plane_angle>, double>(st).get()}, G);
+  boost::add_edge(vd2, vd3, EdgeData{"Equatorial RA Dec to Ecliptic", bac::ra_dec_to_ecliptic<double, quantity<bu::degree::plane_angle>, double>(obliquity).get()}, G);
+  boost::add_edge(vd3, vd2, EdgeData{"Ecliptic to Equatorial RA Dec", bac::ecliptic_to_ra_dec<double, quantity<bu::degree::plane_angle>, double>(obliquity).get()}, G);
   boost::add_edge(vd2, vd4, EdgeData{"Equatorial RA Dec to Galactic", bac::ra_dec_to_galactic<double>().get()}, G);
   boost::add_edge(vd4, vd2, EdgeData{"Galactic to Equatorial RA Dec", bac::galactic_to_ra_dec<double>().get()}, G);
 
-  bool valid_src = false;
-  bool valid_dest = false;
-
-  vertex_t src_vertex;
-  vertex_t dest_vertex;
-
-  //Valid Coordinate System as Source?
-  graph_t::vertex_iterator v1, vend1;
-  for (boost::tie(v1, vend1) = vertices(G); v1 != vend1; ++v1) {
-    if (src == G[*v1].coordinate_name)
-    {
-      valid_src = true;
-      src_vertex = *v1;
-      break;
-    }
-  }
-  if(!valid_src) throw std::range_error("Not found " + src);
-
-  //Valid Coordinate System as Dest?
-  graph_t::vertex_iterator v2, vend2;
-  for (boost::tie(v2, vend2) = vertices(G); v2 != vend2; ++v2) {
-    if (dest == G[*v2].coordinate_name)
-    {
-      valid_dest = true;
-      dest_vertex = *v2;
-      break;
-    }
-  }
-  if(!valid_dest) throw std::range_error("Not found " + dest);
-
   //Predecessor Array
   boost::array<int, graph_size> predecessors{0};
-  predecessors[src_vertex] = src_vertex;
+  predecessors[(int)src] = (int)src;
 
-  boost::breadth_first_search(G, src_vertex, boost::visitor(
+  boost::breadth_first_search(G, (int)src, boost::visitor(
       boost::make_bfs_visitor(
           boost::record_predecessors(predecessors.begin(),
                                      boost::on_tree_edge{}))));
@@ -129,8 +107,8 @@ matrix<double> convert(const std::string& src,
   //Get traversed path
   std::vector<int> store_path;
 
-  int p = dest_vertex;
-  while (p != src_vertex)
+  int p = (int)dest;
+  while (p != (int)src)
   {
     store_path.push_back(p);
     p = predecessors[p];
@@ -141,11 +119,7 @@ matrix<double> convert(const std::string& src,
 
   //Matrix Multiplication
   for(auto it = store_path.rbegin(); it + 1 != store_path.rend(); ++it)
-  {
-    auto a = *it;
-    auto b = *(it+1);
-    ans = prod(G[boost::edge(a,b,G).first].conv_matrix, ans);
-  }
+    ans = prod(G[boost::edge(*it,*(it+1),G).first].conv_matrix, ans);
 
   return ans;
 }

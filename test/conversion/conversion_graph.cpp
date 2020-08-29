@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(ecliptic_to_horizon) {
   quantity<bud::plane_angle, double> st = 77.337 * bud::degree;
   quantity<bud::plane_angle, double> obliquity = 23.446 * bud::degree;
 
-  matrix<double> ans = convert("Ecliptic","Horizon",phi,st,obliquity,ec);
+  matrix<double> ans = convert(COORDINATE_SYSTEM::ECLIPTIC,COORDINATE_SYSTEM::HORIZON,phi,st,obliquity,ec);
 
   auto theta = bac::extract_coordinates(ans).get_coordinates().first;
   auto gama = bac::extract_coordinates(ans).get_coordinates().second;
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(horizon_to_ecliptic) {
   quantity<bud::plane_angle, double> st = 77.337 * bud::degree;
   quantity<bud::plane_angle, double> obliquity = 23.446 * bud::degree;
 
-  matrix<double> ans = convert("Horizon","Ecliptic",phi,st,obliquity,hc);
+  matrix<double> ans = convert(COORDINATE_SYSTEM::HORIZON,COORDINATE_SYSTEM::ECLIPTIC,phi,st,obliquity,hc);
 
   auto theta = bac::extract_coordinates(ans).get_coordinates().first;
   auto gama = bac::extract_coordinates(ans).get_coordinates().second;
